@@ -1,8 +1,7 @@
 import { readFileSync, writeFile } from "fs";
 import path from "path";
 import EMDX from "./emdx.js";
-import { Plugin } from "./emdx.js";
-import JSXPlugin, { HtmlDocTypePlugin, JSPlugin, LiteralPlugin, ReactDocTypePlugin } from "./plugins.js";
+import JSXPlugin, { HtmlDocTypePlugin, JSPlugin, LiteralPlugin, ReactDocTypePlugin } from "./src/plugins.js";
 
 const emdxExample = readFileSync("./example.emdx", "utf-8");
 

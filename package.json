@@ -1,11 +1,12 @@
 {
-  "name": "extensible_markdown",
+  "name": "emdx",
   "version": "0.1.0",
   "description": "",
   "main": "emdx.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest --coverage",
+    "test:watch": "npm run test -- --watchAll --verbose"
   },
   "keywords": [],
   "author": "MrWalshy",
@@ -20,5 +21,9 @@
     "remark-toc": "^8.0.1",
     "unified": "^10.1.2",
     "unified-stream": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.2.6",
+    "jest": "^29.3.1"
   }
 }

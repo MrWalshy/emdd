@@ -1,4 +1,5 @@
-import { DocTypePlugin, Plugin } from "./emdx.js";
+import Plugin from "./Plugin.js";
+import DocTypePlugin from "./DocTypePlugin.js";
 
 export default class JSXPlugin extends Plugin {
     constructor() {
@@ -35,6 +36,12 @@ export class LiteralPlugin extends Plugin {
     }
 }
 
+export class LiteralDocTypePlugin extends DocTypePlugin {
+    transform(content, args) {
+        return content;
+    }
+}
+
 export class ReactDocTypePlugin extends DocTypePlugin {
 
     transform(content, args) {
@@ -64,4 +71,23 @@ export class HtmlDocTypePlugin extends DocTypePlugin {
 </html>
 `;
     }
+}
+
+/**
+* Internal plugin for passing arguments from a document to a DocTypePlugin's transform method.
+*/
+export class DocArgsPlugin extends Plugin {
+   constructor() {
+       super("docArgs");
+   }
+
+   parseAtBlock(block) {
+       try {
+           // console.log("DocArgsPlugin: " + JSON.stringify(block, null, "  "));
+           return JSON.parse(block.value);
+       } catch (e) {
+           console.warn(e);
+           return {};
+       }
+   }
 }
