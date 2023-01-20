@@ -1,0 +1,15 @@
+{
+    "output": {
+        "location": "./build"
+    },
+    "files": [
+        {
+            "name": "index.emdx",
+            "location": "."
+        },
+        {
+            "name": "other.emdx",
+            "location": "."
+        }
+    ]
+}

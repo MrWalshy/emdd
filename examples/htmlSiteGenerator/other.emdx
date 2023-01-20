@@ -1,0 +1,14 @@
+@docArgs(){{
+    "title": "Example page 2",
+    "links": ["./css/style.css"],
+    "scripts": ["./js/app.js"]
+}}
+
+# This is the other page
+
+I can link in CSS and JavaScript, and then continue writing 
+in Markdown as if nothing happened.
+
+## Static site generation
+
+This was generated with **EMDX**.

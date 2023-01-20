@@ -1,0 +1,20 @@
+@docArgs(){{
+    "title": "Example page",
+    "links": ["./css/style.css"],
+    "scripts": ["./js/app.js"]
+}}
+
+# This is the big title
+
+I can link in CSS and JavaScript, and then continue writing 
+in Markdown as if nothing happened.
+
+@js(){
+    const date = new Date();
+    return `<p>Todays date is: ${date.getDay()}/${date.getMonth() + 1}/${date.getFullYear()}</p>`;
+}
+
+@lit(){
+    <div style="width: 50px; height: 50px; background-color: blue;">
+    </div>
+}
