@@ -1,5 +1,8 @@
 import Plugin from "./Plugin.js";
-import DocTypePlugin from "./DocTypePlugin.js";
+import DocTypePlugin, { CompositeDocTypePlugin } from "./DocTypePlugin.js";
+import { readFileSync } from "fs";
+import path from "path";
+import EMDX from "../emdx.js";
 
 export default class JSXPlugin extends Plugin {
     constructor() {
@@ -59,17 +62,44 @@ export default function ${args.name}(props) {
 }
 
 export class HtmlDocTypePlugin extends DocTypePlugin {
-
     transform(src, args) {
-        return `<html>
-    <head>
-        ${"<title>" + args.title + "</title>" || ""}
-    </head>
-    <body>
-        ${src}
-    </body>
+        this._lastSrc = src;
+        this._lastArgs = args;
+        const argMap = this._validateArgs(args);
+        return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    ${argMap.title}
+    ${argMap.links.join("\n" + " ".repeat(8)) || ""}
+</head>
+<body>
+    ${src}
+    ${argMap.scripts.join("\n" + " ".repeat(8)) || ""}
+</body>
 </html>
 `;
+    }
+
+    _validateArgs(args) {
+        const argMap = {};
+
+        // page title
+        if (!args.title) {
+            console.warn("No <title> provided");
+            argMap.title = "<title>Placeholder</title>";
+        } else argMap.title = `<title>${args.title}</title>`;
+
+        // page links
+        if (!args.links) console.warn("No links provided, embedding and inline CSS can be messy...");
+        else argMap.links = args.links.map(arg => `<link rel="stylesheet" href="${arg}" />`);
+
+        if (!args.scripts) console.warn("No scripts provided, embedded and inline JS can be messy...");
+        else argMap.scripts = args.scripts.map(arg => `<script src="${arg}"></script>`);
+
+        return argMap;
     }
 }
 
