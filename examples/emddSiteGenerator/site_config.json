@@ -1,0 +1,11 @@
+{
+    "output": {
+        "type": "html5",
+        "directory": "./build"
+    },
+    "src": {
+        "entrypoint": "./index.emdd",
+        "copyFilesOfType": ["html", "css", "js"]
+    },
+    "contentPlugins": ["js", "lit", "docArgs"]
+}
