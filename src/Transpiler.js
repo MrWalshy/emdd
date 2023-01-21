@@ -6,7 +6,7 @@ export default class Transpiler {
     _documentArgs;
     _markdownParser;
 
-    constructor(contentTransformerPlugins, markdownParser = new UnifiedMarkdownParser()) {
+    constructor(contentTransformerPlugins = [], markdownParser = new UnifiedMarkdownParser()) {
         this._contentTransformerPlugins = contentTransformerPlugins;
         this._markdownParser = markdownParser;
         this._documentArgs = {};
@@ -18,8 +18,8 @@ export default class Transpiler {
      * @returns 
      */
     transpileBlock(block) {
-        if (block.type === BlockType.MARKDOWN) return this.transpileMarkdown(block);
-        else if (block.type === BlockType.PLUGIN || block.type === BlockType.INLINE_PLUGIN) return this.transpilePlugin(block);
+        if (block.type === BlockType.MARKDOWN) return this.transpileMarkdown(block).trim();
+        else if (block.type === BlockType.PLUGIN || block.type === BlockType.INLINE_PLUGIN) return this.transpilePlugin(block).trim();
         else throw new TranspilerError("Error (4): Unrecognised block transpilation target.");
     }
 
