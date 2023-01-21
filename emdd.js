@@ -1,14 +1,9 @@
 import { copyFileSync, cpSync, existsSync, fstat, mkdirSync, readdirSync, readFileSync, rm, rmSync, writeFileSync } from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import Parser from './src/Parser.js';
 import Tokeniser from './src/Tokeniser.js';
 import Transpiler, { DocumentArgumentsTransformer, HtmlDocumentTransformer, JSTransformer, LiteralTransformer } from './src/Transpiler.js';
 import { deepLog } from './src/utils/logging.js';
-import glob from 'glob';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 function createDirectory(dir, dropIfExists = false, recursive = false) {
     const dirExists = existsSync(dir);
@@ -92,26 +87,46 @@ ${decorativeLine}`);
 
 class EmddSiteGenerator {
     generateFromConfig(config) {
-        console.log("Acquiring plugins...");
-        const documentPlugin = this.getDocumentPlugin(config.outputType);
-        const contentPlugins = this.getContentPlugins(config.contentPluginTypes);
-        return this.generate(config, documentPlugin, contentPlugins);
-    }
-
-    generate(config, docPlugin, contentPlugins) {
         // drop and create output directory
         // createDirectory(config.)
         createDirectory(config.outputDirectory, true, true);
         // recursively copy all supported file types
         this.copySupportedFileTypes(config);
         // transpile and copy all .emdd files
+        this.transpileAndCopyEmddToHtmlFiles(config);
     }
 
-    transpile(src, config, docPlugin, contentPlugins) {
+    /**
+     * Transpiles .emdd files to HTML and copies them to their build location.
+     * @param {*} config 
+     */
+    transpileAndCopyEmddToHtmlFiles(config) {
+        const filesToTranspile = getPathsOfType("emdd", path.dirname(config.configLocation));
+        const filesToCreate = [];
+        filesToTranspile.forEach(filePath => {
+            let relativePath = filePath.split(path.dirname(config.configLocation))[1];
+            filesToCreate.push({
+                relativeFilePath: relativePath.replace(".emdd", ".html"),
+                content: this.transpile(readFileSync(filePath, "utf-8"), config)
+            });
+        });
+        filesToCreate.forEach(file => {
+            const outputLocation = path.resolve(path.dirname(config.configLocation), config.outputDirectory);
+            const targetLocation = path.resolve(outputLocation, file.relativeFilePath.substring(1));
+            writeFileSync(targetLocation, file.content);
+        });
+        // deepLog(filesToTranspile);
+        // deepLog(filesToCreate);
+    }
+
+    transpile(src, config) {
         const tokeniser = new Tokeniser(src, config.contentPluginTypes);
-        const parser = new Parser(tokeniser.tokenise());
-        const transpiler = new Transpiler(contentPlugins);
-        return transpiler.transpile(parser.parse(), docPlugin);
+        const tokens = tokeniser.tokenise();
+        const parser = new Parser(tokens);
+        const blocks = parser.parse();
+        deepLog(blocks);
+        const transpiler = new Transpiler(this.getContentPlugins(config.contentPluginTypes));
+        return transpiler.transpile(blocks, this.getDocumentPlugin(config.outputType));
     }
 
     copySupportedFileTypes(config) {
@@ -213,51 +228,4 @@ try {
     logTitleBlock("WARNING!", 18);
     console.error(error.message);
     process.exit(1);
-}
-
-export class EmdxHtmlGenerator {
-    _config;
-    _htmlTransformerPlugin;
-    _emdx;
-
-    constructor(configPath) {
-        this._config = JSON.parse(readFileSync(path.resolve(configPath), "utf-8"));
-        this._config.project_location = path.dirname(path.resolve(configPath));
-        this._config.output_location = path.resolve(this._config.project_location, this._config.output.location);
-        this._emdx = new EMDX([new LiteralPlugin(), new JSPlugin()]);
-        this._htmlTransformerPlugin = new HtmlDocTypePlugin();
-    }
-
-    generateFromFile(file) {
-        const fileLocation = path.resolve(this._config.project_location, file.location);
-        const outputLocation = path.resolve(this._config.output_location, file.name.split(".")[0] + ".html");
-
-        // read and transpile file
-        const content = readFileSync(path.resolve(this._config.project_location, file.location, file.name), "utf-8");
-        const transpiledContent = this._emdx.transpile(content, null, this._htmlTransformerPlugin);
-
-        // output the transpiled html file
-        writeFileSync(outputLocation, transpiledContent, { encoding: "utf-8" });
-
-        // output any linked static resource
-        const { links, scripts } = this._htmlTransformerPlugin.previousArgs;
-        const resources = [...links, ...scripts];
-        resources.forEach(resource => {
-            const resourceLocation = path.resolve(fileLocation, resource);
-            const resourceOutputLocation = path.resolve(this._config.output_location, resource);
-            if (!existsSync(path.dirname(resourceOutputLocation))) mkdirSync(path.dirname(resourceOutputLocation), { recursive: true });
-            copyFileSync(resourceLocation, resourceOutputLocation);
-        });
-    }
-
-    generate() { 
-        // drop and recreate output location before build
-        if (existsSync(this._config.output_location)) rmSync(this._config.output_location, {
-            recursive: true,
-            force: true
-        });
-        mkdirSync(this._config.output_location, { recursive: true });
-        this._config.files.forEach(this.generateFromFile.bind(this)); 
-    }
-
 }

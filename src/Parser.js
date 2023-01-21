@@ -7,6 +7,7 @@ import remarkGfm from 'remark-gfm';
 // import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import { TokenType } from './Token.js';
+import { deepLog } from './utils/logging.js';
 
 export default class Parser {
     _src;
@@ -103,7 +104,7 @@ export default class Parser {
     }
 
     plugin() {
-        const type = this.previous()._tokenType === TokenType.NEWLINE ? BlockType.PLUGIN : BlockType.INLINE_PLUGIN;
+        const type = !this.previous() || this.previous()._tokenType === TokenType.NEWLINE ? BlockType.PLUGIN : BlockType.INLINE_PLUGIN;
         this.advance(); // past '@'
         const identifier = this.advance(); // PLUGIN_IDENTIFIER
 

@@ -12,7 +12,6 @@
   "author": "MrWalshy",
   "license": "MIT",
   "dependencies": {
-    "glob": "^8.1.0",
     "rehype-format": "^4.0.1",
     "rehype-katex": "^6.0.2",
     "rehype-stringify": "^9.0.3",

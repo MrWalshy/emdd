@@ -1,4 +1,5 @@
 import { BlockType, UnifiedMarkdownParser } from "./Parser.js";
+import { deepLog } from "./utils/logging.js";
 import types from './utils/types.js';
 
 export default class Transpiler {
@@ -19,7 +20,7 @@ export default class Transpiler {
      */
     transpileBlock(block) {
         if (block.type === BlockType.MARKDOWN) return this.transpileMarkdown(block).trim();
-        else if (block.type === BlockType.PLUGIN || block.type === BlockType.INLINE_PLUGIN) return this.transpilePlugin(block).trim();
+        else if (block.type === BlockType.PLUGIN || block.type === BlockType.INLINE_PLUGIN) return this.transpilePlugin(block);
         else throw new TranspilerError("Error (4): Unrecognised block transpilation target.");
     }
 
