@@ -35,7 +35,7 @@ export default class Transpiler {
 
     transpilePlugin(block) {
         const plugin = this._contentTransformerPlugins.find(plugin => plugin.name === block._identifier);
-        if (!plugin) throw new TranspilerError(`Error (4): Plugin not found for ${block._identifier}`);
+        if (!plugin) throw new TranspilerError(`Error (5): Plugin not found for ${block._identifier}`);
         if (plugin.name === "docArgs") this._documentArgs = plugin.transform(block);
         else return plugin.transform(block);
         return "";
