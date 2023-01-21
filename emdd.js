@@ -2,7 +2,7 @@ import { copyFileSync, existsSync, fstat, mkdirSync, readFileSync, rmSync, write
 import path from 'path';
 
 console.log(`=============================================================
-===             Extensible Markdown Documents             ===
+===         Extensible Markdown Documents (.emdd)         ===
 =============================================================
 
     Command-line functionality coming soon...`);

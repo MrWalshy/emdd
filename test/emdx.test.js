@@ -1,4 +1,4 @@
-import EMDX from "../emdx.js";
+import EMDX from "../emdd.js";
 import { LiteralDocTypePlugin } from "../src/plugins.js";
 
 describe("Valid markdown compiled to HTML", () => {

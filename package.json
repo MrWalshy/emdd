@@ -1,8 +1,8 @@
 {
-  "name": "emdx",
-  "version": "0.2.0",
+  "name": "emdd",
+  "version": "0.3.0",
   "description": "",
-  "main": "emdx.js",
+  "main": "emdd.js",
   "type": "module",
   "scripts": {
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest --coverage",
