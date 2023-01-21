@@ -9,67 +9,139 @@ import rehypeKatex from 'rehype-katex';
 import { TokenType } from './Token.js';
 
 export default class Parser {
-    _tokens;
-    _plugins;
-    _ast;
-    _mdProcessor;
     _src;
+    _tokens;
     _current;
-    _startOfCurrentBlock;
-    _atBlockParseFailed;
-    _documentArgs;
 
-    constructor(tokens = [], plugins = [], src="") {
+    constructor(tokens = []) {
         this._tokens = tokens;
-        this._plugins = plugins;
-        this._src = src;
         this._current = 0;
-        this._startOfCurrentBlock = 0;
-        this._atBlockParseFailed = false;
-        this._documentArgs = null;
-        this._mdProcessor = unified()
-            .use(remarkParse)
-            // .use(remarkMath)
-            .use(remarkGfm)
-            .use(remarkRehype) // MD AST -> HTML AST
-            .use(rehypeKatex) // math symbols, similar to latex
-            .use(rehypeFormat)
-            .use(rehypeStringify); // HTML AST to HTML text
-            // console.log(tokens);
     }
-
-    get documentArgs() { return this._documentArgs; }
 
     parse() {
-        // if no plugins or only the DocArg plugin, whole document is parsed as markdown
-        if (!this._plugins || this._plugins.length === 1) return this.markdownDocument();
-
-        // if plugins present, parse markdown + plugin behaviours
-        // - build AST
-        // - return parsed string of tokens
         const blocks = [];
-        let output = "";
 
-        // parse into AST
         while (!this.isAtEnd()) blocks.push(this.block());
-
-        // iterate over blocks and transpile
-        for (let block of blocks) {
-            const plugin = this._plugins.find(plug => plug.name === block.name);
-            if (block.name === "docArgs") this._documentArgs = plugin.parseAtBlock(block); // document transformation arguments
-            else if (plugin) output += plugin.parseAtBlock(block).trim(); // regular plugin
-            else output += this._mdProcessor.processSync(block.value).value.trim(); // markdown/everything else
-        }
-        return output.trim();
+        return blocks;
     }
 
-    markdownDocument() {
-        // parses everything as markdown
-        return this._mdProcessor.processSync(this._src).value;
+    block() {
+        const start = this._current;
+        try {
+            // if (this.previous()._tokenType === TokenType.NEWLINE && this.check(TokenType.AT) && this.checkAhead(TokenType.PLUGIN_IDENTIFIER)) return this.inlinePlugin();
+            if (this.check(TokenType.AT) && this.checkAhead(TokenType.PLUGIN_IDENTIFIER, 1)) return this.plugin();
+            else return this.markdown();
+        } catch (parserError) {
+            console.warn("ParserError: " + parserError.message);
+            this._current = start;
+            return this.markdown(parserError);
+        }
+    }
+
+    atBlockBody() {
+        if (!this.check(TokenType.LEFT_CURLY)) throw new ParserError("Expected '{' after parameter list.");
+        this.advance();
+        let value = "";
+
+        while (!this.isAtEnd()) {
+            if (this.check(TokenType.RIGHT_CURLY) && this.checkAhead(TokenType.SEMI_COLON, 1)) break;
+            const token = this.advance();
+            value += token._lexeme;
+
+            if (this.check(TokenType.BACKSLASH)) {
+                // backslash escapes the next character in @ block body
+                this.advance();
+                value += this.advance()._lexeme;
+            }
+        }
+        if (!this.check(TokenType.RIGHT_CURLY) || !this.checkAhead(TokenType.SEMI_COLON, 1)) throw new ParserError("Expected '};' after @ block body");
+        this.advance();
+        if (!this.check(TokenType.SEMI_COLON)) throw new ParserError("Expected ';' after end of @ block body");
+        this.advance();
+        return value.trim();
+    }
+
+    parameters() {
+        if (!this.check(TokenType.LEFT_PAREN)) throw new ParserError("Expected '(' after identifier.");
+        this.advance(); // past '('
+        const parameters = [];
+
+        // while not EOF and not RIGHT_PAREN
+        while (!this.check(TokenType.RIGHT_PAREN)) parameters.push(this.parameter());
+
+        // if EOF or right paren missing, failed to parse parameters
+        if (!this.check(TokenType.RIGHT_PAREN)) throw new ParserError("Expected ')' after parameters");
+        this.advance(); // past ')'
+        return parameters; // SUCCESS :O
+    }
+
+    parameter() {
+        const parameter = {
+            name: "",
+            value: ""
+        };
+
+        // consume upto =
+        while (!this.isAtEnd() && !this.check(TokenType.EQUAL)) parameter.name += this.advance()._lexeme;
+
+        // missing equals means error in params
+        if (!this.check(TokenType.EQUAL)) throw new ParserError("Expected an '=' after parameter name");
+        const equalsToken = this.advance();
+        
+        // parse the value
+        if (!this.check(TokenType.QUOTE)) throw new ParserError("Expected a '\"' after assignment operator");
+        this.advance();
+        
+        // consume upto closing quote, params are space separated
+        while (!this.isAtEnd() && !this.check(TokenType.QUOTE)) { parameter.value += this.advance()._lexeme; }
+
+        // consume closing quote
+        if (!this.check(TokenType.QUOTE)) throw new ParserError("Expected a '\"' after argument")
+        this.advance();
+
+        return new Parameter(parameter.name, parameter.value);
+    }
+
+    plugin() {
+        const type = this.previous()._tokenType === TokenType.NEWLINE ? BlockType.PLUGIN : BlockType.INLINE_PLUGIN;
+        this.advance(); // past '@'
+        const identifier = this.advance(); // PLUGIN_IDENTIFIER
+
+        // check for parameters
+        const parameters = this.parameters();
+        const blockBody = this.atBlockBody();
+
+        return new Block(type, identifier._lexeme, parameters, blockBody);
+    }
+
+    markdown(parserError) {
+        const valueArray = [];
+        let value = "";
+        if (parserError) {
+            // add the first token, a failed '@' block then proceed as normal
+            value += this.advance()._lexeme;
+        }
+        while(!this.isAtEnd() && (!this.check(TokenType.AT) || !this.checkAhead(TokenType.PLUGIN_IDENTIFIER, 1))) {
+            // if current token is not a newline, next token is @ and token after is identifier
+            // - add current tokens value to value
+            // - add current value to value array
+            // - reset value
+            // - add inline child to value array
+            // else
+            // - append to value
+            if (!this.check(TokenType.NEWLINE) && this.checkAhead(TokenType.AT, 1) && this.checkAhead(TokenType.PLUGIN_IDENTIFIER, 2)) {
+                value += this.advance()._lexeme;
+                valueArray.push(value);
+                value = "";
+                valueArray.push(this.block());
+            } else value += this.advance()._lexeme;
+        }
+        if (value.length > 0) valueArray.push(value);
+        return new Block(BlockType.MARKDOWN, null, null, valueArray);
     }
 
     isAtEnd() {
-        return this._current >= this._tokens.length || this.peek()._tokenType == "EOF";
+        return this.peek()._tokenType.type === "EOF" || this._current >= this._tokens.length - 1;
     }
 
     peek() {
@@ -92,7 +164,7 @@ export default class Parser {
     }
 
     checkAhead(tokenType, count) {
-        if (this._current + count >= this._tokens.length || this.isAtEnd()) return false;
+        if (this.isAtEnd()) return false;
         return this._tokens[this._current + count]._tokenType === tokenType;
     }
 
@@ -101,127 +173,86 @@ export default class Parser {
         console.warn(message);
         return false;
     }
+}
 
-    /**
-     * Returns an internal block data structure, block may have a type of MARKDOWN or PLUGIN
-     * @returns 
-     */
-    block() {
-        // if next two tokens = @PLUGIN_IDENTIFIER
-        if (this.check(TokenType.AT) && this.checkAhead(TokenType.PLUGIN_IDENTIFIER, 1)) {
-            // parse plugin block
-            this._startOfCurrentBlock = this._current;
-            const atToken = this.consume(TokenType.AT, "@ Block identifier missing");
-            const atBlockIdentifier = this.consume(TokenType.PLUGIN_IDENTIFIER, "Plugin identifier expected");
-            
-            // check for parameters
-            if (this.check(TokenType.LEFT_PAREN)) return this.atBlock(atToken, atBlockIdentifier);
+export class Parameter {
+    _name;
+    _value;
 
-            // had error, reset current position and parse as markdown
-            this._current = this._startOfCurrentBlock;
-            this._atBlockParseFailed = true;
-        } 
-        // markdown block
-        return this.markdownBlock();
+    constructor(name, value) {
+        this._name = name;
+        this._value = value;
     }
 
-    atBlock(atToken, atBlockIdentifier) {
-        const leftParen = this.consume(TokenType.LEFT_PAREN, "Left parenthesis missing after @ block identifier");
-        const parameters = this.parameters();
-        let body = null;
-        
-        if (!this._atBlockParseFailed && this.check(TokenType.LEFT_CURLY)) {
-            body = this.atBlockBody();
-        }
+    get name() { return this._name; }
+    get value() { return this._value; }
+}
 
-        if (this._atBlockParseFailed) {
-            // console.log("At block parse failed.");
-            this._current = this._startOfCurrentBlock;
-            return this.markdownBlock();
-        }
+export class Block {
+    _type;
+    _identifier;
+    _parameters;
+    _value;
 
-        return {
-            type: "PLUGIN",
-            name: atBlockIdentifier._lexeme,
-            parameters: parameters,
-            value: body
-        }
+    constructor(type, identifier, parameters, value) {
+        this._type = type;
+        this._identifier = identifier;
+        this._parameters = parameters;
+        this._value = value;
     }
 
-    parameters() {
-        const parameters = [];
-        // while not EOF and not RIGHT_PAREN
-        while (!this.isAtEnd() && !this.check(TokenType.RIGHT_PAREN)) {
-            // try build a parameter
-            const parameter = {
-                name: "",
-                value: ""
-            };
+    get type() { return this._type; }
+    get identifier() { return this._identifier; }
+    get parameters() { return this._parameters; }
+    get value() { return this._value; }
+}
 
-            // consume upto =
-            while (!this.isAtEnd() && !this.check(TokenType.EQUAL)) parameter.name += this.advance()._lexeme;
+export const BlockType = {
+    "INLINE_PLUGIN": {
+        type: "INLINE_PLUGIN"
+    },
+    "PLUGIN" : {
+        type: "PLUGIN"
+    },
+    "MARKDOWN": {
+        type: "MARKDOWN"
+    }
+}
 
-            // missing equals means error in params
-            const equalsToken = this.consume(TokenType.EQUAL, "Expected an equal token");
-            if (!equalsToken || equalsToken._lexeme !== "=" || this.isAtEnd()) { this._atBlockParseFailed = true; return null; }
-            
-            // parse the value
-            const startQuote = this.consume(TokenType.QUOTE, "Expected an '\"' before parameter value");
-            if (!startQuote) { this._atBlockParseFailed = true; return null; }
-            
-            // consume upto closing quote, params are space separated
-            while (!this.isAtEnd() && !this.check(TokenType.QUOTE)) { parameter.value += this.advance()._lexeme; }
+export class MarkdownParser {
+    parse(src) {
+        throw new UnimplementedError();
+    }
+}
 
-            // shouldn't be at the end
-            if (this.isAtEnd()) { this._atBlockParseFailed = true; return null; }
+export class UnifiedMarkdownParser extends MarkdownParser {
+    _parser;
 
-            const closingQuote = this.consume(TokenType.QUOTE, "Expected an '\"' after parameter value");
-            if (!closingQuote) { this._atBlockParseFailed = true; return null; }
-
-            // console.log(parameter)
-            parameters.push(parameter);
-        }
-
-        // if EOF or right paren missing, failed to parse parameters
-        if (this.isAtEnd() || !this.consume(TokenType.RIGHT_PAREN, "Expected right parenthesis after parameter list.")) {
-            this._atBlockParseFailed = true;
-            return null;
-        }
-        return parameters; // SUCCESS :O
+    constructor() {
+        super();
+        this._parser = unified()
+            .use(remarkParse)
+            // .use(remarkMath)
+            .use(remarkGfm)
+            .use(remarkRehype) // MD AST -> HTML AST
+            .use(rehypeKatex) // math symbols, similar to latex
+            .use(rehypeFormat)
+            .use(rehypeStringify); // HTML AST to HTML text
     }
 
-    atBlockBody() {
-        let value = "";
-        let curlyCount = 1;
-        const leftCurly = this.consume(TokenType.LEFT_CURLY, "Expected '{' after parameter list.");
-        let rightCurly = null;
-
-        while (!this.isAtEnd() && curlyCount > 0) {
-            const token = this.advance();
-            if (token._tokenType === TokenType.LEFT_CURLY) curlyCount++;
-            else if (token._tokenType === TokenType.RIGHT_CURLY) curlyCount--;
-            
-            // reached end of body
-            if (curlyCount === 0) rightCurly = token;
-
-            // add nested curly or char
-            if (curlyCount > 0) value += token._lexeme;
-        }
-
-        if (!rightCurly) { this._atBlockParseFailed = true; return null; }
-        else return value.trim();
+    parse(src) {
+        return this._parser.processSync(src).value;
     }
+}
 
-    markdownBlock() {
-        const markdownBlock = {
-            type: "MARKDOWN",
-            value: ""
-        };
-        this._startOfCurrentBlock = this._current;
-        while (!this.isAtEnd() && (this._atBlockParseFailed || (!this.check(TokenType.AT, 1) && !this.checkAhead(TokenType.PLUGIN_IDENTIFIER, 1)))) {
-            markdownBlock.value += this.advance()._lexeme;
-        }
-        this._atBlockParseFailed = false;
-        return markdownBlock;
+export class UnimplementedError extends Error {
+    constructor(message) {
+        super(message || "Error (1): Not implemented");
+    }
+}
+
+class ParserError extends Error {
+    constructor(message) {
+        super(message || "Error (2): Unable to parse content");
     }
 }

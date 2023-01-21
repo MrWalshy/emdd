@@ -47,5 +47,8 @@ export const TokenType = {
     },
     QUOTE: {
         type: "QUOTE"
+    },
+    SEMI_COLON: {
+        type: "SEMI_COLON"
     }
 };
