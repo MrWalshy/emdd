@@ -59,7 +59,7 @@ export default class Transpiler {
             if (!preProcessor) output.push(block);
             else {
                 const preProcessedBlock = preProcessor.transform(block);
-                if (preProcessedBlock) output.push()
+                if (preProcessedBlock) output.push(block);
             }
         });
         return output;
@@ -123,19 +123,44 @@ export class TemplatePreProcessor extends PreProcessingContentPlugin {
     }
 
     transform(block) {
-        console.log("CREATING TEMPLATE");
-        console.log(block);
+        this._weaver.addTemplate(block);
     }
 }
 
 export class WeaveTemplatePlugin extends ContentTransformerPlugin {
+    _templates;
+
     constructor() {
         super("weave", ["name", "argsType"]);
+        this._templates = {};
     }
 
     transform(block) {
-        console.log("WEAVING");
-        console.log(block)
+        const weaveNameParam = block.parameters.find(param => param.name);
+        if (!weaveNameParam) throw new Error("Template weave parameter 'name' not supplied");
+        const template = this._templates[weaveNameParam];
+        if (!template) throw new Error("Could not find template with name '" + weaveNameParam + "'");
+        return this.weave(block, template);
+    }
+
+    addTemplate(block) {
+        const templateName = block.parameters.find(param => param.name);
+        if (!templateName) throw new Error("Cannot create nameless template");
+        this._templates[templateName] = block;
+    }
+
+    weave(weaveBlock, templateBlock) {
+        const weaveArgs = JSON.parse(`{${weaveBlock.value}}`);
+
+        // expected params of template
+        let expectedParams = templateBlock.parameters.find(param => param.name === "args");
+        expectedParams = expectedParams.length === 0 ? [] : expectedParams.value.split(" ");
+        
+        // prepare output
+        let output = templateBlock.value;
+        expectedParams.forEach(param => output = output.replace(`@${param};`, weaveArgs[param] || ""));
+
+        return output;
     }
 }
 

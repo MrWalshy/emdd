@@ -6,6 +6,14 @@ import Transpiler, { DocumentArgumentsTransformer, HtmlDocumentTransformer, JSTr
 import { createDirectory, getPathsOfType } from "../utils/file.js";
 
 export default class EmddSiteGenerator {
+    _weaver;
+    _templateProcessor;
+
+    constructor() {
+        this._weaver = new WeaveTemplatePlugin();
+        this._templateProcessor = new TemplatePreProcessor(this._weaver);
+    }
+
     generateFromConfig(config) {
         // drop and create output directory
         // createDirectory(config.)
@@ -92,9 +100,6 @@ export default class EmddSiteGenerator {
     }
 
     getContentPlugin(type) {
-        const weaver = new WeaveTemplatePlugin();
-        const templateProcessor = new TemplatePreProcessor(weaver);
-        
         // console.log("Acquiring content plugin of type: " + type);
         switch (type) {
             case "js":
@@ -104,9 +109,9 @@ export default class EmddSiteGenerator {
             case "docArgs":
                 return new DocumentArgumentsTransformer();
             case "template":
-                return templateProcessor;
+                return this._templateProcessor;
             case "weave":
-                return weaver;
+                return this._weaver;
             default:
                 throw new SiteConfigurationError("(302): Invalid content plugin type '" + type + "' supplied");
         }

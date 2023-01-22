@@ -10,3 +10,5 @@ This is my document!
 };
 
 @weave(name="title"){ "title": "Hello world", "lead": "Some text" };
+
+Followed by some text.
