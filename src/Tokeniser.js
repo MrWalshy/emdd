@@ -70,7 +70,7 @@ export default class Tokeniser {
                 this.addToken(new Token(TokenType.SEMI_COLON, ";"));
                 break;
             default:
-                if (this.isAlpha(currentCharacter) && this._tokens[this._tokens.length - 1]._lexeme == "@") this.pluginIdentifier(currentCharacter);
+                if (this.isAlpha(currentCharacter) && this._tokens[this._tokens.length - 1].lexeme == "@") this.pluginIdentifier(currentCharacter);
                 else this.addToken(new Token(TokenType.CHARACTER, currentCharacter));
                 break;
         }
@@ -103,17 +103,17 @@ export default class Tokeniser {
 
     pluginIdentifier(current) {
         // console.log("Made it")
-        const characters = [new Token(TokenType.CHARACTER, current)];
+        const characters = [new Token(TokenType.CHARACTER, current, this._line)];
         let str = current;
         let character;
 
         while (this.isAlpha(this.peek())) {
             character = this.next();
-            characters.push(new Token(TokenType.CHARACTER, character));
+            characters.push(new Token(TokenType.CHARACTER, character, this._line));
             str += character;
         }
         const pluginName = this._pluginIdentifiers.find(plugin => plugin == str);
-        if (pluginName) this._tokens.push(new Token(TokenType.PLUGIN_IDENTIFIER, str));
+        if (pluginName) this._tokens.push(new Token(TokenType.PLUGIN_IDENTIFIER, str, this._line));
         else this._tokens.push(...characters);
     }
 }
