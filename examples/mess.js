@@ -21,11 +21,11 @@ Inline plugins @js(){ return 3 + 3; }; should be supported.
 
 const tokeniser = new Tokeniser(emdd, ["js", "lit", "docArgs"]);
 const tokens = tokeniser.tokenise();
-console.log(tokens);
+// console.log(tokens);
 const parser = new Parser(tokens);
 const blocks = parser.parse();
 const contentTransformerPlugins = [new JSTransformer(), new LiteralTransformer(), new DocumentArgumentsTransformer()];
 const htmlDocumentTransformer = new HtmlDocumentTransformer();
 const transpiler = new Transpiler(contentTransformerPlugins);
 // deepLog(blocks);
-// console.log(transpiler.transpile(blocks, htmlDocumentTransformer));
+console.log(transpiler.transpile(blocks, htmlDocumentTransformer));
