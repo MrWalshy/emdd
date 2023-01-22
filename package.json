@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node ./emdd.js",
+    "deploy": "npm publish",
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest --coverage",
     "test:watch": "npm run test -- --watchAll --verbose"
   },
