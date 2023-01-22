@@ -5,7 +5,8 @@
     },
     "src": {
         "entrypoint": "./index.emdd",
-        "copyFilesOfType": ["html", "css", "js"]
+        "copyFilesOfType": ["html", "css", "js"],
+        "templates": ["./templates"]
     },
     "contentPlugins": ["js", "lit", "docArgs", "template", "weave"]
 }
