@@ -9,10 +9,14 @@ import { deepLog } from '../utils/logging.js';
 export default class EmddSiteGenerator {
     _weaver;
     _templateProcessor;
+    _preamble;
+    _postamble;
 
     constructor() {
         this._weaver = new WeaveTemplatePlugin();
         this._templateProcessor = new TemplatePreProcessor(this._weaver);
+        this._preamble = "";
+        this._postamble = "";
     }
 
     generateFromConfig(config) {
@@ -31,6 +35,15 @@ export default class EmddSiteGenerator {
             console.log("@ DOING: Loading templates");
             this.loadTemplates(config);
             console.log("@ DONE: Loading templates");
+        }
+        // prepare the preamble and postamble
+        if (config.preambleLocation) {
+            const preamblePath = path.resolve(path.dirname(config.configLocation), config.preambleLocation);
+            this._preamble = readFileSync(preamblePath, "utf-8");
+        }
+        if (config.postambleLocation) {
+            const postamblePath = path.resolve(path.dirname(config.configLocation), config.postambleLocation);
+            this._postamble = readFileSync(postamblePath, "utf-8");
         }
         // transpile and copy all .emdd files
         console.log("@ DOING: Transpiling .emdd to .html and copying to build directory");
@@ -119,11 +132,19 @@ export default class EmddSiteGenerator {
     }
 
     copySupportedFileTypes(config) {
-        const filesToCopy = [];
+        let filesToCopy = [];
         config.supportedFileTypes.forEach(type => {
             filesToCopy.push(...getPathsOfType(type, path.dirname(config.configLocation)));
         });
         
+        // remove postamble and preamble files
+        if (config.preambleLocation || config.postambleLocation) {
+            const preamblePath = path.resolve(path.dirname(config.configLocation), config.preambleLocation);
+            const postamblePath = path.resolve(path.dirname(config.configLocation), config.postambleLocation);
+            filesToCopy = filesToCopy.filter(file => file !== preamblePath && file !== postamblePath);
+        }
+
+        // copy each file
         filesToCopy.forEach(file => {
             const relativePath = file.split(path.dirname(config.configLocation))[1];
             const outputLocation = path.resolve(path.dirname(config.configLocation), config.outputDirectory);
@@ -137,7 +158,7 @@ export default class EmddSiteGenerator {
         console.log("Acquiring document plugin of type: " + type);
         switch (type) {
             case "html5":
-                return new HtmlDocumentTransformer();
+                return new HtmlDocumentTransformer(this._preamble, this._postamble);
             default:
                 throw new SiteConfigurationError("(301): Invalid document type supplied");
         }
@@ -191,6 +212,8 @@ export class EmddSiteConfiguration {
     get contentPluginTypes() { return this._contentPlugins; }
     get configLocation() { return this._config.location; }
     get templateDirectories() { return this._src.templates; }
+    get preambleLocation() { return this._src.preamble; }
+    get postambleLocation() { return this._src.postamble; }
 }
 
 export class SiteConfigurationError extends Error {

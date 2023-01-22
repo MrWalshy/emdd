@@ -6,7 +6,9 @@
     "src": {
         "entrypoint": "./index.emdd",
         "copyFilesOfType": ["html", "css", "js"],
-        "templates": ["./templates"]
+        "templates": ["./templates"],
+        "preamble": "./preamble.html",
+        "postamble": "./postamble.html"
     },
     "contentPlugins": ["js", "lit", "docArgs", "template", "weave"]
 }
