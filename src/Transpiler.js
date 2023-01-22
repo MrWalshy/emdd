@@ -176,6 +176,15 @@ export class DocumentTransformerPlugin {
 }
 
 export class HtmlDocumentTransformer extends DocumentTransformerPlugin {
+    _preamble;
+    _postamble;
+
+    constructor(preamble = "", postamble = "") {
+        super();
+        this._preamble = preamble;
+        this._postamble = postamble;
+    }
+
     transform(src, args) {
         const argMap = this._validateArgs(args);
         return `<!DOCTYPE html>
@@ -188,7 +197,9 @@ export class HtmlDocumentTransformer extends DocumentTransformerPlugin {
     ${argMap.links.join("\n" + " ".repeat(4)) || ""}
 </head>
 <body>
+    ${this._preamble}
     ${src}
+    ${this._postamble}
     ${argMap.scripts.join("\n" + " ".repeat(4)) || ""}
 </body>
 </html>
