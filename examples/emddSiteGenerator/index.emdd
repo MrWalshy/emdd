@@ -1,3 +1,10 @@
 # Hello world
 
 This is my document!
+
+@template(name="title" args="title lead"){
+    <header>
+        <h1>@title;</h1>
+        <p>@lead;</p>
+    </header>
+};

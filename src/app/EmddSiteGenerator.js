@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync, existsSync, cpSync } from 'fs';
 import path from 'path';
 import Parser from '../Parser.js';
 import Tokeniser from '../Tokeniser.js';
-import Transpiler, { DocumentArgumentsTransformer, HtmlDocumentTransformer, JSTransformer, LiteralTransformer } from '../Transpiler.js';
+import Transpiler, { DocumentArgumentsTransformer, HtmlDocumentTransformer, JSTransformer, LiteralTransformer, TemplatePreProcessor } from '../Transpiler.js';
 import { createDirectory, getPathsOfType } from "../utils/file.js";
 
 export default class EmddSiteGenerator {
@@ -92,6 +92,8 @@ export default class EmddSiteGenerator {
     }
 
     getContentPlugin(type) {
+        const templateProcessor = new TemplatePreProcessor();
+        
         // console.log("Acquiring content plugin of type: " + type);
         switch (type) {
             case "js":
@@ -100,6 +102,8 @@ export default class EmddSiteGenerator {
                 return new LiteralTransformer();
             case "docArgs":
                 return new DocumentArgumentsTransformer();
+            case "template":
+                return templateProcessor;
             default:
                 throw new SiteConfigurationError("(302): Invalid content plugin type '" + type + "' supplied");
         }

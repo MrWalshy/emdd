@@ -43,9 +43,25 @@ export default class Transpiler {
     }
 
     transpile(blocks = [], documentTransformerPlugin) {
+        const processedBlocks = this.preProcess(blocks);
         let output = "";
-        blocks.forEach(block => output += this.transpileBlock(block));
+        processedBlocks.forEach(block => output += this.transpileBlock(block));
         if (documentTransformerPlugin) return documentTransformerPlugin.transform(output, this._documentArgs);
+        return output;
+    }
+
+    preProcess(blocks) {
+        const output = [];
+        const preProcessors = this._contentTransformerPlugins.filter(plugin => plugin.isPreProcessor());
+        if (preProcessors.length === 0) return blocks;
+        blocks.forEach(block => {
+            const preProcessor = preProcessors.find(processor => processor.name === block.identifier);
+            if (!preProcessor) output.push(block);
+            else {
+                const preProcessedBlock = preProcessor.transform(block);
+                if (preProcessedBlock) output.push()
+            }
+        });
         return output;
     }
 }
@@ -59,16 +75,20 @@ export class TranspilerError extends Error {
 export class ContentTransformerPlugin {
     _name;
     _parameters;
+    _preProcess;
 
-    constructor(name="", parameters=[]) {
+    constructor(name = "", parameters = [], preProcess = false) {
         this._name = name;
         this._parameters = parameters;
+        this._preProcess = preProcess;
     }
 
     get name() { return this._name; }
     set name(name) { this._name = name; }
     get parameters() { return this._parameters; }
     set parameters(parameters) { this._parameters = parameters; }
+
+    isPreProcessor() { return this._preProcess; }
 
     /**
      * Parses the given block, returning a string.
@@ -78,6 +98,36 @@ export class ContentTransformerPlugin {
      */
     transform(block) {
         throw UnimplementedError("Not implemented: Plugin unable to parse @ block");
+    }
+}
+
+export class PreProcessingContentPlugin extends ContentTransformerPlugin {
+    constructor(name = "", parameters = []) {
+        super(name, parameters, true);
+    }
+
+    // Don't return anything from `transform()` if the pre-processor removes
+    // a block, otherwise return the pre-processed block
+}
+
+export class TemplatePreProcessor extends PreProcessingContentPlugin {
+    constructor() {
+        super("template", ["name", "args", "type"]);
+    }
+
+    transform(block) {
+        console.log("CREATING TEMPLATE");
+        console.log(block);
+    }
+}
+
+export class WeaveTemplatePlugin extends ContentTransformerPlugin {
+    constructor() {
+        super("weave", ["name", "argsType"]);
+    }
+
+    transform(block) {
+        console.log("WEAVING");
     }
 }
 
