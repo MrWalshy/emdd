@@ -111,8 +111,15 @@ export class PreProcessingContentPlugin extends ContentTransformerPlugin {
 }
 
 export class TemplatePreProcessor extends PreProcessingContentPlugin {
-    constructor() {
+    _weaver;
+
+    /**
+     * 
+     * @param {WeaveTemplatePlugin} weaver 
+     */
+    constructor(weaver) {
         super("template", ["name", "args", "type"]);
+        this._weaver = weaver;
     }
 
     transform(block) {

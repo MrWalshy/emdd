@@ -294,12 +294,12 @@ const params = plugin.parameters;
 We can also create `ContentTransformerPlugin`s which are hooked to run before all other content plugins, the `template` plugin is a useful example of a pre-processing plugin:
 
 ```js
-@template(name="title" args="title lead" type="lit"){
+@template(name="title" args="title lead"){
     <header>
         <h1>@title;</h1>
         <p>@lead;</p>
     </header>
-}
+};
 ```
 
 - Use `@` followed by an argument name and then a `;` to reference an argument in a template

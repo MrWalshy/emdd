@@ -68,7 +68,13 @@ export default class Parser {
         const parameters = [];
 
         // while not EOF and not RIGHT_PAREN
-        while (!this.check(TokenType.RIGHT_PAREN)) parameters.push(this.parameter());
+        while (!this.check(TokenType.RIGHT_PAREN)) {
+            // consume WHITESPACE
+            while (this.peek()._lexeme === " ") this.advance();
+            parameters.push(this.parameter());
+            // consume WHITESPACE
+            while (this.peek()._lexeme === " ") this.advance();
+        };
 
         // if EOF or right paren missing, failed to parse parameters
         if (!this.check(TokenType.RIGHT_PAREN)) throw new ParserError("Expected ')' after parameters");
