@@ -4,12 +4,12 @@ export default class Tokeniser {
     _src;
     _current;
     _tokens;
-    _pluginNames;
+    _pluginIdentifiers;
     _startOfLexeme;
 
-    constructor(src, pluginNames) {
+    constructor(src, pluginIdentifiers) {
         this._src = src;
-        this._pluginNames = pluginNames;
+        this._pluginIdentifiers = pluginIdentifiers;
         this._tokens = [];
         this._current = 0;
         this._startOfLexeme = 0;
@@ -28,9 +28,6 @@ export default class Tokeniser {
         let currentCharacter = this.next();
 
         switch (currentCharacter) {
-            case "%":
-                this._tokens.push(new Token(TokenType.PERCENT, "%"));
-                break;
             case "\n":
                 this._tokens.push(new Token(TokenType.NEWLINE, "\n"));
                 break;
@@ -58,6 +55,12 @@ export default class Tokeniser {
             case "@":
                 this._tokens.push(new Token(TokenType.AT, "@"));
                 break;
+            case "\"":
+                this._tokens.push(new Token(TokenType.QUOTE, "\""));
+                break;
+            case ";":
+                this._tokens.push(new Token(TokenType.SEMI_COLON, ";"));
+                break;
             default:
                 if (this.isAlpha(currentCharacter) && this._tokens[this._tokens.length - 1]._lexeme == "@") this.pluginIdentifier(currentCharacter);
                 else this._tokens.push(new Token(TokenType.CHARACTER, currentCharacter));
@@ -68,7 +71,7 @@ export default class Tokeniser {
     /**
      * Returns the next character in the internal src string buffer.
      */
-    next() {
+     next() {
         return this._src[this._current++];
     }
 
@@ -101,7 +104,7 @@ export default class Tokeniser {
             characters.push(new Token(TokenType.CHARACTER, character));
             str += character;
         }
-        const pluginName = this._pluginNames.find(plugin => plugin == str);
+        const pluginName = this._pluginIdentifiers.find(plugin => plugin == str);
         if (pluginName) this._tokens.push(new Token(TokenType.PLUGIN_IDENTIFIER, str));
         else this._tokens.push(...characters);
     }
