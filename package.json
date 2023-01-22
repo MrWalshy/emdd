@@ -1,13 +1,17 @@
 {
   "name": "emdd",
-  "version": "0.3.1",
+  "version": "0.4.1",
   "description": "",
   "main": "emdd.js",
   "type": "module",
   "scripts": {
     "start": "node ./emdd.js",
+    "deploy": "npm publish",
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest --coverage",
     "test:watch": "npm run test -- --watchAll --verbose"
+  },
+  "bin": {
+    "emdd_site": "./emdd.js"
   },
   "keywords": [],
   "author": "MrWalshy",

@@ -1,6 +1,6 @@
-import Tokeniser from "./src/Tokeniser.js";
-import Parser, { BlockType, UnifiedMarkdownParser, UnimplementedError } from './src/Parser.js';
-import Transpiler, { DocumentArgumentsTransformer, HtmlDocumentTransformer, JSTransformer, LiteralTransformer } from "./src/Transpiler.js";
+import {Tokeniser} from "../emdd.js";
+import { Parser, BlockType, UnifiedMarkdownParser, UnimplementedError } from "../emdd.js";
+import { Transpiler, DocumentArgumentsTransformer, HtmlDocumentTransformer, JSTransformer, LiteralTransformer } from "../emdd.js";
 
 ///////// MAIN //////////
 const emdd = `# My title

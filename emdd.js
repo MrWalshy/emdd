@@ -1,5 +1,20 @@
+#!/usr/bin/env node
 import EmddSiteGenerator, { loadSiteConfiguration } from "./src/app/EmddSiteGenerator.js";
 import { logTitleBlock } from "./src/utils/logging.js";
+import Parser from "./src/Parser.js";
+import Tokeniser from "./src/Tokeniser.js";
+import Token from "./src/Token.js";
+import Transpiler from "./src/Transpiler.js";
+import types from "./src/utils/types.js";
+
+export * from './src/Parser.js';
+export * from './src/Token.js';
+export * from './src/Tokeniser.js';
+export * from './src/Transpiler.js';
+export * from './src/app/EmddSiteGenerator.js';
+export * from './src/utils/file.js';
+export * from './src/utils/logging.js';
+export { Parser, Token, Tokeniser, Transpiler, EmddSiteGenerator, types };
 
 class CommandArgumentError extends Error {
     constructor(message) {
@@ -29,10 +44,12 @@ function getCommandArgs() {
 try {
     logTitleBlock("Extensible Markdown Documents (.emdd)", 4);
     const args = getCommandArgs();
-    if (!args.config) throw new CommandArgumentError("(201): '--config=<FILE_PATH>' required");
-    const configuration = loadSiteConfiguration(args.config);
-    const emddSiteGenerator = new EmddSiteGenerator();
-    emddSiteGenerator.generateFromConfig(configuration);
+    // if (!args.config) throw new CommandArgumentError("(201): '--config=<FILE_PATH>' required");
+    if (args.config) {
+        const configuration = loadSiteConfiguration(args.config);
+        const emddSiteGenerator = new EmddSiteGenerator();
+        emddSiteGenerator.generateFromConfig(configuration);
+    }
 } catch (error) {
     console.log();
     logTitleBlock("FATAL WARNING!", 12);

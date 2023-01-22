@@ -2,10 +2,18 @@ import { readFileSync, writeFileSync, existsSync, cpSync } from 'fs';
 import path from 'path';
 import Parser from '../Parser.js';
 import Tokeniser from '../Tokeniser.js';
-import Transpiler, { DocumentArgumentsTransformer, HtmlDocumentTransformer, JSTransformer, LiteralTransformer } from '../Transpiler.js';
+import Transpiler, { DocumentArgumentsTransformer, HtmlDocumentTransformer, JSTransformer, LiteralTransformer, TemplatePreProcessor, WeaveTemplatePlugin } from '../Transpiler.js';
 import { createDirectory, getPathsOfType } from "../utils/file.js";
 
 export default class EmddSiteGenerator {
+    _weaver;
+    _templateProcessor;
+
+    constructor() {
+        this._weaver = new WeaveTemplatePlugin();
+        this._templateProcessor = new TemplatePreProcessor(this._weaver);
+    }
+
     generateFromConfig(config) {
         // drop and create output directory
         // createDirectory(config.)
@@ -100,6 +108,10 @@ export default class EmddSiteGenerator {
                 return new LiteralTransformer();
             case "docArgs":
                 return new DocumentArgumentsTransformer();
+            case "template":
+                return this._templateProcessor;
+            case "weave":
+                return this._weaver;
             default:
                 throw new SiteConfigurationError("(302): Invalid content plugin type '" + type + "' supplied");
         }

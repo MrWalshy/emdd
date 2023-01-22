@@ -257,7 +257,7 @@ The `src.copyFilesOfType` list allows you to specify file types to copy over dir
 To generate a site from the command-line, run this npm package and pass the `--config` flag:
 
 ```
---config="./config.json"
+npx emdd_site --config="./config.json"
 ```
 
 ## Creating plugins
@@ -288,6 +288,29 @@ You can also get the `name` and `parameters` of a plugin using their associated 
 const name = plugin.name;
 const params = plugin.parameters;
 ```
+
+#### Pre-processing hook
+
+We can also create `ContentTransformerPlugin`s which are hooked to run before all other content plugins, the `template` plugin is a useful example of a pre-processing plugin:
+
+```js
+@template(name="title" args="title lead"){
+    <header>
+        <h1>@title;</h1>
+        <p>@lead;</p>
+    </header>
+};
+```
+
+- Use `@` followed by an argument name and then a `;` to reference an argument in a template
+
+This plugin will register a template with the `Transpiler` instance which can then be weaved during the final stage of processing into the desired content:
+
+```js
+@weave(name="title" argsType="json") { "title": "Hello world", "lead": "Some lead text" }
+```
+
+The arguments for a template are weaved from a JSON object or a JS object containing properties with the same names. A plugin must have pre-processing enabled to be used in this way.
 
 ### Document transformation plugins
 

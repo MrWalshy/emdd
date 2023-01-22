@@ -43,9 +43,25 @@ export default class Transpiler {
     }
 
     transpile(blocks = [], documentTransformerPlugin) {
+        const processedBlocks = this.preProcess(blocks);
         let output = "";
-        blocks.forEach(block => output += this.transpileBlock(block));
+        processedBlocks.forEach(block => output += this.transpileBlock(block));
         if (documentTransformerPlugin) return documentTransformerPlugin.transform(output, this._documentArgs);
+        return output;
+    }
+
+    preProcess(blocks) {
+        const output = [];
+        const preProcessors = this._contentTransformerPlugins.filter(plugin => plugin.isPreProcessor());
+        if (preProcessors.length === 0) return blocks;
+        blocks.forEach(block => {
+            const preProcessor = preProcessors.find(processor => processor.name === block.identifier);
+            if (!preProcessor) output.push(block);
+            else {
+                const preProcessedBlock = preProcessor.transform(block);
+                if (preProcessedBlock) output.push(block);
+            }
+        });
         return output;
     }
 }
@@ -59,16 +75,20 @@ export class TranspilerError extends Error {
 export class ContentTransformerPlugin {
     _name;
     _parameters;
+    _preProcess;
 
-    constructor(name="", parameters=[]) {
+    constructor(name = "", parameters = [], preProcess = false) {
         this._name = name;
         this._parameters = parameters;
+        this._preProcess = preProcess;
     }
 
     get name() { return this._name; }
     set name(name) { this._name = name; }
     get parameters() { return this._parameters; }
     set parameters(parameters) { this._parameters = parameters; }
+
+    isPreProcessor() { return this._preProcess; }
 
     /**
      * Parses the given block, returning a string.
@@ -78,6 +98,69 @@ export class ContentTransformerPlugin {
      */
     transform(block) {
         throw UnimplementedError("Not implemented: Plugin unable to parse @ block");
+    }
+}
+
+export class PreProcessingContentPlugin extends ContentTransformerPlugin {
+    constructor(name = "", parameters = []) {
+        super(name, parameters, true);
+    }
+
+    // Don't return anything from `transform()` if the pre-processor removes
+    // a block, otherwise return the pre-processed block
+}
+
+export class TemplatePreProcessor extends PreProcessingContentPlugin {
+    _weaver;
+
+    /**
+     * 
+     * @param {WeaveTemplatePlugin} weaver 
+     */
+    constructor(weaver) {
+        super("template", ["name", "args", "type"]);
+        this._weaver = weaver;
+    }
+
+    transform(block) {
+        this._weaver.addTemplate(block);
+    }
+}
+
+export class WeaveTemplatePlugin extends ContentTransformerPlugin {
+    _templates;
+
+    constructor() {
+        super("weave", ["name", "argsType"]);
+        this._templates = {};
+    }
+
+    transform(block) {
+        const weaveNameParam = block.parameters.find(param => param.name);
+        if (!weaveNameParam) throw new Error("Template weave parameter 'name' not supplied");
+        const template = this._templates[weaveNameParam];
+        if (!template) throw new Error("Could not find template with name '" + weaveNameParam + "'");
+        return this.weave(block, template);
+    }
+
+    addTemplate(block) {
+        const templateName = block.parameters.find(param => param.name);
+        if (!templateName) throw new Error("Cannot create nameless template");
+        this._templates[templateName] = block;
+    }
+
+    weave(weaveBlock, templateBlock) {
+        const weaveArgs = JSON.parse(`{${weaveBlock.value}}`);
+
+        // expected params of template
+        let expectedParams = templateBlock.parameters.find(param => param.name === "args");
+        expectedParams = expectedParams.length === 0 ? [] : expectedParams.value.split(" ");
+        
+        // prepare output
+        let output = templateBlock.value;
+        expectedParams.forEach(param => output = output.replace(`@${param};`, weaveArgs[param] || ""));
+
+        return output;
     }
 }
 

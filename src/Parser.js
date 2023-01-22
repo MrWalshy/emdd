@@ -7,7 +7,7 @@ import remarkGfm from 'remark-gfm';
 // import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import { TokenType } from './Token.js';
-import { deepLog } from './utils/logging.js';
+import { deepLog, logTitleBlock } from './utils/logging.js';
 
 export default class Parser {
     _src;
@@ -33,7 +33,9 @@ export default class Parser {
             if (this.check(TokenType.AT) && this.checkAhead(TokenType.PLUGIN_IDENTIFIER, 1)) return this.plugin();
             else return this.markdown();
         } catch (parserError) {
+            logTitleBlock("Syntax error encountered", 8);
             console.warn("ParserError: " + parserError.message);
+            console.warn(`Reverting to previous known good state (token: [${start}])\n`);
             this._current = start;
             return this.markdown(parserError);
         }
@@ -68,7 +70,13 @@ export default class Parser {
         const parameters = [];
 
         // while not EOF and not RIGHT_PAREN
-        while (!this.check(TokenType.RIGHT_PAREN)) parameters.push(this.parameter());
+        while (!this.check(TokenType.RIGHT_PAREN)) {
+            // consume WHITESPACE
+            while (this.peek()._lexeme === " ") this.advance();
+            parameters.push(this.parameter());
+            // consume WHITESPACE
+            while (this.peek()._lexeme === " ") this.advance();
+        };
 
         // if EOF or right paren missing, failed to parse parameters
         if (!this.check(TokenType.RIGHT_PAREN)) throw new ParserError("Expected ')' after parameters");
