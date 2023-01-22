@@ -5,6 +5,7 @@
   "main": "emdd.js",
   "type": "module",
   "scripts": {
+    "start": "node ./emdd.js",
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest --coverage",
     "test:watch": "npm run test -- --watchAll --verbose"
   },
