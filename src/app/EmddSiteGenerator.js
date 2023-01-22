@@ -1,9 +1,10 @@
-import { readFileSync, writeFileSync, existsSync, cpSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, cpSync, mkdirSync } from 'fs';
 import path from 'path';
 import Parser from '../Parser.js';
 import Tokeniser from '../Tokeniser.js';
 import Transpiler, { DocumentArgumentsTransformer, HtmlDocumentTransformer, JSTransformer, LiteralTransformer, TemplatePreProcessor, WeaveTemplatePlugin } from '../Transpiler.js';
 import { createDirectory, getPathsOfType } from "../utils/file.js";
+import { deepLog } from '../utils/logging.js';
 
 export default class EmddSiteGenerator {
     _weaver;
@@ -17,6 +18,7 @@ export default class EmddSiteGenerator {
     generateFromConfig(config) {
         // drop and create output directory
         // createDirectory(config.)
+        // deepLog(config)
         console.log("@ DOING: Creating build directory")
         createDirectory(config.outputDirectory, true, true);
         console.log("@ DONE: Creating build directory");
@@ -24,10 +26,40 @@ export default class EmddSiteGenerator {
         console.log("@ DOING: Copying files of supported types to build directory");
         this.copySupportedFileTypes(config);
         console.log("@ DONE: Copying files of supported types to build directory");
+        // preload templates
+        if (config.templateDirectories) {
+            console.log("@ DOING: Loading templates");
+            this.loadTemplates(config);
+            console.log("@ DONE: Loading templates");
+        }
         // transpile and copy all .emdd files
         console.log("@ DOING: Transpiling .emdd to .html and copying to build directory");
         this.transpileAndCopyEmddToHtmlFiles(config);
         console.log("@ DONE: Transpiling .emdd to .html and copying to build directory");
+    }
+
+    loadTemplates(config) {
+        let templateFiles = [];
+        config.templateDirectories.forEach(templateDirectory => {
+            const dir = path.resolve(path.dirname(config.configLocation), templateDirectory);
+            console.log("@ INFO: Scanning '" + dir + "' for templates");
+            templateFiles.push(...getPathsOfType("emdd", dir));
+        });
+        if (!templateFiles) {
+            console.log("@ INFO: No template files found");
+            return;
+        }
+        // load the data in the template files, parse it and add to the weavers templates
+        templateFiles.forEach(file => {
+            console.log("@ INFO: Loading data from '" + file + "'");
+            const data = readFileSync(file, "utf-8");
+            const tokeniser = new Tokeniser(data, ["template"]);
+            const parser = new Parser(tokeniser.tokenise());
+            const blocks = parser.parse();
+            console.log("@ INFO: Loading templates into template weaver");
+            blocks.forEach(block => this._weaver.addTemplate(block));
+            // deepLog(this._weaver._templates);
+        });
     }
 
     /**
@@ -35,7 +67,23 @@ export default class EmddSiteGenerator {
      * @param {*} config 
      */
     transpileAndCopyEmddToHtmlFiles(config) {
-        const filesToTranspile = getPathsOfType("emdd", path.dirname(config.configLocation));
+        // get files to transpile
+        let filesToTranspile = getPathsOfType("emdd", path.dirname(config.configLocation));
+        const templateDirectories = config.templateDirectories.map(dir => path.resolve(path.dirname(config.configLocation), dir));
+        filesToTranspile = filesToTranspile.filter(file => {
+            // get the simple directory name only of the file
+            let fileDir = path.dirname(file).split(path.sep);
+            fileDir = fileDir[fileDir.length - 1];
+            for (const templateDirectory of templateDirectories) {
+                // get the simple directory name of the template directory only
+                let dir = templateDirectory.split(path.sep);
+                dir = dir[dir.length - 1];
+                if (fileDir === dir) return false; // exclude templates from copying
+            }
+            return true;
+        });
+
+        // transpile each file in preparation to create the files
         const filesToCreate = [];
         filesToTranspile.forEach(filePath => {
             console.log("@ STATUS: About to transpile '" + filePath + "'");
@@ -46,10 +94,13 @@ export default class EmddSiteGenerator {
             });
             console.log("@ STATUS: Transpiled '" + filePath + "'");
         });
+
+        // create the files with the transpile content in them
         filesToCreate.forEach(file => {
             console.log("@ STATUS: Creating '" + file.relativeFilePath + "' in build directory");
             const outputLocation = path.resolve(path.dirname(config.configLocation), config.outputDirectory);
             const targetLocation = path.resolve(outputLocation, file.relativeFilePath.substring(1));
+            if (!existsSync(path.dirname(targetLocation))) mkdirSync(path.dirname(targetLocation), { recursive: true });
             writeFileSync(targetLocation, file.content);
             console.log("@ STATUS: Created '" + file.relativeFilePath + "' in build directory: " + targetLocation);
         });
@@ -139,6 +190,7 @@ export class EmddSiteConfiguration {
     get supportedFileTypes() { return this._src.copyFilesOfType; }
     get contentPluginTypes() { return this._contentPlugins; }
     get configLocation() { return this._config.location; }
+    get templateDirectories() { return this._src.templates; }
 }
 
 export class SiteConfigurationError extends Error {

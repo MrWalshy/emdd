@@ -49,12 +49,12 @@ export default class Parser {
         while (!this.isAtEnd()) {
             if (this.check(TokenType.RIGHT_CURLY) && this.checkAhead(TokenType.SEMI_COLON, 1)) break;
             const token = this.advance();
-            value += token._lexeme;
+            value += token.lexeme;
 
             if (this.check(TokenType.BACKSLASH)) {
                 // backslash escapes the next character in @ block body
                 this.advance();
-                value += this.advance()._lexeme;
+                value += this.advance().lexeme;
             }
         }
         if (!this.check(TokenType.RIGHT_CURLY) || !this.checkAhead(TokenType.SEMI_COLON, 1)) throw new ParserError("Expected '};' after @ block body");
@@ -72,10 +72,10 @@ export default class Parser {
         // while not EOF and not RIGHT_PAREN
         while (!this.check(TokenType.RIGHT_PAREN)) {
             // consume WHITESPACE
-            while (this.peek()._lexeme === " ") this.advance();
+            while (this.peek().lexeme === " ") this.advance();
             parameters.push(this.parameter());
             // consume WHITESPACE
-            while (this.peek()._lexeme === " ") this.advance();
+            while (this.peek().lexeme === " ") this.advance();
         };
 
         // if EOF or right paren missing, failed to parse parameters
@@ -91,7 +91,7 @@ export default class Parser {
         };
 
         // consume upto =
-        while (!this.isAtEnd() && !this.check(TokenType.EQUAL)) parameter.name += this.advance()._lexeme;
+        while (!this.isAtEnd() && !this.check(TokenType.EQUAL)) parameter.name += this.advance().lexeme;
 
         // missing equals means error in params
         if (!this.check(TokenType.EQUAL)) throw new ParserError("Expected an '=' after parameter name");
@@ -102,7 +102,7 @@ export default class Parser {
         this.advance();
         
         // consume upto closing quote, params are space separated
-        while (!this.isAtEnd() && !this.check(TokenType.QUOTE)) { parameter.value += this.advance()._lexeme; }
+        while (!this.isAtEnd() && !this.check(TokenType.QUOTE)) { parameter.value += this.advance().lexeme; }
 
         // consume closing quote
         if (!this.check(TokenType.QUOTE)) throw new ParserError("Expected a '\"' after argument")
@@ -112,7 +112,7 @@ export default class Parser {
     }
 
     plugin() {
-        const type = !this.previous() || this.previous()._tokenType === TokenType.NEWLINE ? BlockType.PLUGIN : BlockType.INLINE_PLUGIN;
+        const type = !this.previous() || this.previous().tokenType === TokenType.NEWLINE ? BlockType.PLUGIN : BlockType.INLINE_PLUGIN;
         this.advance(); // past '@'
         const identifier = this.advance(); // PLUGIN_IDENTIFIER
 
@@ -120,7 +120,7 @@ export default class Parser {
         const parameters = this.parameters();
         const blockBody = this.atBlockBody();
 
-        return new Block(type, identifier._lexeme, parameters, blockBody);
+        return new Block(type, identifier.lexeme, parameters, blockBody);
     }
 
     markdown(parserError) {
@@ -128,7 +128,7 @@ export default class Parser {
         let value = "";
         if (parserError) {
             // add the first token, a failed '@' block then proceed as normal
-            value += this.advance()._lexeme;
+            value += this.advance().lexeme;
         }
         while(!this.isAtEnd() && (!this.check(TokenType.AT) || !this.checkAhead(TokenType.PLUGIN_IDENTIFIER, 1))) {
             // if current token is not a newline, next token is @ and token after is identifier
@@ -139,18 +139,18 @@ export default class Parser {
             // else
             // - append to value
             if (!this.check(TokenType.NEWLINE) && this.checkAhead(TokenType.AT, 1) && this.checkAhead(TokenType.PLUGIN_IDENTIFIER, 2)) {
-                value += this.advance()._lexeme;
+                value += this.advance().lexeme;
                 valueArray.push(value);
                 value = "";
                 valueArray.push(this.block());
-            } else value += this.advance()._lexeme;
+            } else value += this.advance().lexeme;
         }
         if (value.length > 0) valueArray.push(value);
         return new Block(BlockType.MARKDOWN, null, null, valueArray);
     }
 
     isAtEnd() {
-        return this.peek()._tokenType.type === "EOF" || this._current >= this._tokens.length - 1;
+        return this.peek().tokenType.type === "EOF" || this._current >= this._tokens.length - 1;
     }
 
     peek() {
@@ -169,7 +169,7 @@ export default class Parser {
 
     check(tokenType) {
         if (this.isAtEnd()) return false;
-        return this.peek()._tokenType == tokenType;
+        return this.peek().tokenType === tokenType;
     }
 
     checkAhead(tokenType, count) {

@@ -6,6 +6,7 @@ export default class Tokeniser {
     _tokens;
     _pluginIdentifiers;
     _startOfLexeme;
+    _line;
 
     constructor(src, pluginIdentifiers) {
         this._src = src;
@@ -13,6 +14,12 @@ export default class Tokeniser {
         this._tokens = [];
         this._current = 0;
         this._startOfLexeme = 0;
+        this._line = 1;
+    }
+
+    addToken(token) {
+        token.line = this._line;
+        this._tokens.push(token);
     }
 
     tokenise() {
@@ -20,7 +27,7 @@ export default class Tokeniser {
             this._startOfLexeme = this._current;
             this.scanToken();
         }
-        this._tokens.push(new Token(TokenType.EOF, ""));
+        this.addToken(new Token(TokenType.EOF, ""));
         return this._tokens;
     }
 
@@ -29,41 +36,42 @@ export default class Tokeniser {
 
         switch (currentCharacter) {
             case "\n":
-                this._tokens.push(new Token(TokenType.NEWLINE, "\n"));
+                this.addToken(new Token(TokenType.NEWLINE, "\n"));
+                this._line++;
                 break;
             case "{":
-                this._tokens.push(new Token(TokenType.LEFT_CURLY, "{"));
+                this.addToken(new Token(TokenType.LEFT_CURLY, "{"));
                 break;
             case "}":
-                this._tokens.push(new Token(TokenType.RIGHT_CURLY, "}"));
+                this.addToken(new Token(TokenType.RIGHT_CURLY, "}"));
                 break;
             case "(":
-                this._tokens.push(new Token(TokenType.LEFT_PAREN, "("));
+                this.addToken(new Token(TokenType.LEFT_PAREN, "("));
                 break;
             case ")":
-                this._tokens.push(new Token(TokenType.RIGHT_PAREN, ")"));
+                this.addToken(new Token(TokenType.RIGHT_PAREN, ")"));
                 break;
             case "\\":
-                this._tokens.push(new Token(TokenType.BACKSLASH, "\\"));
+                this.addToken(new Token(TokenType.BACKSLASH, "\\"));
                 break;
             case "\"":
-                this._tokens.push(new Token(TokenType.QUOTE, "\""));
+                this.addToken(new Token(TokenType.QUOTE, "\""));
                 break;
             case "=":
-                this._tokens.push(new Token(TokenType.EQUAL, "="));
+                this.addToken(new Token(TokenType.EQUAL, "="));
                 break;
             case "@":
-                this._tokens.push(new Token(TokenType.AT, "@"));
+                this.addToken(new Token(TokenType.AT, "@"));
                 break;
             case "\"":
-                this._tokens.push(new Token(TokenType.QUOTE, "\""));
+                this.addToken(new Token(TokenType.QUOTE, "\""));
                 break;
             case ";":
-                this._tokens.push(new Token(TokenType.SEMI_COLON, ";"));
+                this.addToken(new Token(TokenType.SEMI_COLON, ";"));
                 break;
             default:
-                if (this.isAlpha(currentCharacter) && this._tokens[this._tokens.length - 1]._lexeme == "@") this.pluginIdentifier(currentCharacter);
-                else this._tokens.push(new Token(TokenType.CHARACTER, currentCharacter));
+                if (this.isAlpha(currentCharacter) && this._tokens[this._tokens.length - 1].lexeme == "@") this.pluginIdentifier(currentCharacter);
+                else this.addToken(new Token(TokenType.CHARACTER, currentCharacter));
                 break;
         }
     }
@@ -95,17 +103,17 @@ export default class Tokeniser {
 
     pluginIdentifier(current) {
         // console.log("Made it")
-        const characters = [new Token(TokenType.CHARACTER, current)];
+        const characters = [new Token(TokenType.CHARACTER, current, this._line)];
         let str = current;
         let character;
 
         while (this.isAlpha(this.peek())) {
             character = this.next();
-            characters.push(new Token(TokenType.CHARACTER, character));
+            characters.push(new Token(TokenType.CHARACTER, character, this._line));
             str += character;
         }
         const pluginName = this._pluginIdentifiers.find(plugin => plugin == str);
-        if (pluginName) this._tokens.push(new Token(TokenType.PLUGIN_IDENTIFIER, str));
+        if (pluginName) this._tokens.push(new Token(TokenType.PLUGIN_IDENTIFIER, str, this._line));
         else this._tokens.push(...characters);
     }
 }

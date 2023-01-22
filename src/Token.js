@@ -1,11 +1,18 @@
 export default class Token {
     _tokenType;
     _lexeme;
+    _line;
 
-    constructor(tokenType, lexeme) {
+    constructor(tokenType, lexeme, line) {
         this._tokenType = tokenType;
         this._lexeme = lexeme;
+        this._line = line;
     }
+
+    get tokenType() { return this._tokenType; }
+    get lexeme() { return this._lexeme; }
+    get line() { return this._line; }
+    set line(line) { this._line = line; }
 }
 
 export const TokenType = {

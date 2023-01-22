@@ -136,17 +136,17 @@ export class WeaveTemplatePlugin extends ContentTransformerPlugin {
     }
 
     transform(block) {
-        const weaveNameParam = block.parameters.find(param => param.name);
+        const weaveNameParam = block.parameters.find(param => param.name === "name");
         if (!weaveNameParam) throw new Error("Template weave parameter 'name' not supplied");
-        const template = this._templates[weaveNameParam];
-        if (!template) throw new Error("Could not find template with name '" + weaveNameParam + "'");
+        const template = this._templates[weaveNameParam.value];
+        if (!template) throw new Error("Could not find template with name '" + weaveNameParam.value + "'");
         return this.weave(block, template);
     }
 
     addTemplate(block) {
-        const templateName = block.parameters.find(param => param.name);
-        if (!templateName) throw new Error("Cannot create nameless template");
-        this._templates[templateName] = block;
+        const templateNameParameter = block.parameters.find(param => param.name === "name");
+        if (!templateNameParameter) throw new Error("Cannot create nameless template");
+        this._templates[templateNameParameter.value] = block;
     }
 
     weave(weaveBlock, templateBlock) {
@@ -154,11 +154,11 @@ export class WeaveTemplatePlugin extends ContentTransformerPlugin {
 
         // expected params of template
         let expectedParams = templateBlock.parameters.find(param => param.name === "args");
-        expectedParams = expectedParams.length === 0 ? [] : expectedParams.value.split(" ");
+        if (expectedParams) expectedParams = expectedParams.length === 0 ? [] : expectedParams.value.split(" ");
         
         // prepare output
         let output = templateBlock.value;
-        expectedParams.forEach(param => output = output.replace(`@${param};`, weaveArgs[param] || ""));
+        if (expectedParams) expectedParams.forEach(param => output = output.replace(`@${param};`, weaveArgs[param] || ""));
 
         return output;
     }
