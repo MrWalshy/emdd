@@ -7,5 +7,5 @@
         "entrypoint": "./index.emdd",
         "copyFilesOfType": ["html", "css", "js"]
     },
-    "contentPlugins": ["js", "lit", "docArgs", "template"]
+    "contentPlugins": ["js", "lit", "docArgs", "template", "weave"]
 }

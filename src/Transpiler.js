@@ -135,6 +135,7 @@ export class WeaveTemplatePlugin extends ContentTransformerPlugin {
 
     transform(block) {
         console.log("WEAVING");
+        console.log(block)
     }
 }
 

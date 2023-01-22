@@ -8,3 +8,5 @@ This is my document!
         <p>@lead;</p>
     </header>
 };
+
+@weave(name="title"){ "title": "Hello world", "lead": "Some text" };
