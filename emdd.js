@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import EmddSiteGenerator, { loadSiteConfiguration } from "./src/app/EmddSiteGenerator.js";
 import { logTitleBlock } from "./src/utils/logging.js";
 

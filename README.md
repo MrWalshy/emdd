@@ -257,7 +257,7 @@ The `src.copyFilesOfType` list allows you to specify file types to copy over dir
 To generate a site from the command-line, run this npm package and pass the `--config` flag:
 
 ```
---config="./config.json"
+npx emdd_site --config="./config.json"
 ```
 
 ## Creating plugins
