@@ -19,9 +19,9 @@ Inline plugins @js(){ return 3 + 3; }; should be supported.
 
 
 
-const tokeniser = new Tokeniser(emdd, ["js"]);
+const tokeniser = new Tokeniser(emdd, ["js", "lit", "docArgs"]);
 const tokens = tokeniser.tokenise();
-const parser = new Parser(tokens, [], emdd);
+const parser = new Parser(tokens);
 const blocks = parser.parse();
 const contentTransformerPlugins = [new JSTransformer(), new LiteralTransformer(), new DocumentArgumentsTransformer()];
 const htmlDocumentTransformer = new HtmlDocumentTransformer();
