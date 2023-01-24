@@ -10,5 +10,6 @@
         "preamble": "./preamble.html",
         "postamble": "./postamble.html"
     },
-    "contentPlugins": ["js", "lit", "docArgs", "template", "weave"]
+    "contentPlugins": ["js", "lit", "docArgs", "weave"],
+    "preProcessors": ["template"]
 }
