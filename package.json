@@ -1,6 +1,6 @@
 {
   "name": "emdd",
-  "version": "0.5.0",
+  "version": "0.7.0",
   "description": "",
   "main": "emdd.js",
   "type": "module",
@@ -11,7 +11,7 @@
     "test:watch": "npm run test -- --watchAll --verbose"
   },
   "bin": {
-    "emdd_site": "./emdd.js"
+    "emdd": "./emdd.js"
   },
   "keywords": [],
   "author": "MrWalshy",

@@ -36,7 +36,8 @@ function getCommandArgs() {
         } else if (arg[0] === '-') {
             const flags = arg.slice(1, arg.length).split(""); // after the `-`
             flags.forEach(flag => args[flag] = true);
-        } else throw new CommandArgumentError("(200): Malformed argument '" + arg + "' supplied.");
+        // } else throw new CommandArgumentError("(200): Malformed argument '" + arg + "' supplied.");
+        } else args[arg] = true;
     }
     return args;
 }
@@ -45,11 +46,14 @@ try {
     logTitleBlock("Extensible Markdown Documents (.emdd)", 4);
     const args = getCommandArgs();
     // if (!args.config) throw new CommandArgumentError("(201): '--config=<FILE_PATH>' required");
-    if (args.config) {
-        const configuration = loadSiteConfiguration(args.config);
-        const emddSiteGenerator = new EmddSiteGenerator();
-        emddSiteGenerator.generateFromConfig(configuration);
+    switch (process.argv[2]) {
+        case "site":
+            if (args.config) new EmddSiteGenerator().generateFromConfig(loadSiteConfiguration(args.config));
+            break;
+        default:
+            throw new CommandArgumentError("No valid parameters passed");
     }
+    
 } catch (error) {
     console.log();
     logTitleBlock("FATAL WARNING!", 12);

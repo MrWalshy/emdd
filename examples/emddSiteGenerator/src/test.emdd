@@ -1,6 +1,7 @@
-@docArgs(){{
-    "title": "Test site"
-}};
+@docArgs()
+```
+"title": "Test site"
+```
 
 # Just a second test file
 

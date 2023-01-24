@@ -1,6 +1,6 @@
 # Extensible markdown
 
-Extensible Markdown (.emdd) is a file format for writing web documents, which can then be transpiled with the use of plugins to your desired output, or lack of. This allows Markdown to remain relatively as normal while also promoting extensibility. By default, `.emdd` files will have their Markdown content parsed and output as HTML.
+Extensible Markdown Documents (emdd) is an extension to Markdown for writing web documents, which can then be transpiled with the use of plugins to your desired output, or lack of. This allows Markdown to remain relatively as normal while also promoting extensibility. By default, `md` files will have their Markdown content parsed and output as HTML. Blocks annotated with an `@` specifier will be processed via pre-processing and content processing plugins where supported.
 
 > The API for Extensible Markdown will be classed as unstable until a version 1 release is reached
 
@@ -17,11 +17,10 @@ If you would like to contribute to Extensible Markdown, please visit the GitHub 
 The following is an example of an EXMD document:
 
 ```md
-@docArgs(){
-    {
-        "title": "Example page"
-    }
-};
+@docArgs()
+\```
+"title": "Example page"
+\```
 
 # Title
 
@@ -29,11 +28,11 @@ Some paragraph text. Some paragraph text. Some paragraph text. Some paragraph te
 Some paragraph text. Some paragraph text. Some paragraph text. Some paragraph text. Some paragraph text. Some paragraph text. 
 Some paragraph text. Some paragraph text. Some paragraph text.
 
-@js(){
-    let sum = 3 + 3;
-    return `<p>Sum of 3 + 3 is ${sum}</p>`;
-};
-```
+@js()
+\```
+let sum = 3 + 3;
+return `<p>Sum of 3 + 3 is ${sum}</p>`;
+\```
 
 After transpilation to HTML, the contents of the document would roughly look as follows:
 
@@ -75,18 +74,19 @@ const emdd = `# My title
 
 Some text
 
-@js(){
-    let sum = 3 + 3;
-    return \`<p>Sum of 3 + 3 is \${sum}</p>\`;
-};
+@js()
+\`\`\`
+let sum = 3 + 3;
+return \`<p>Sum of 3 + 3 is ${sum}</p>\`;
+\`\`\`
 
 Some more markdown following the @ block.
 
-Inline plugins @js(){ return 3 + 3; }; should be supported.
+Inline plugins @js(value="return 3 + 3"); should be supported.
 `;
 ```
 
-Now, we can create a new `Tokeniser`. We must pass the `emdd` source content and an array of plugin identifiers. The plugin identifiers are the names of the content transformation plugins you are using in your document, a **content transformation plugin** is used to transform an `@` block of content.
+Now, we can create a new `Tokeniser`. We must pass the `md` source content and an array of plugin identifiers. The plugin identifiers are the names of the content transformation plugins you are using in your document, a **content transformation plugin** is used to transform an `@` block of content.
 
 ```js
 const tokeniser = new Tokeniser(emdd, ["js", "lit", "docArgs"]);
@@ -118,62 +118,57 @@ console.log(transpiler.transpile(blocks, htmlDocumentTransformer));
 
 ## EMDD Syntax and other rules
 
-This section concerns the syntactical and other rules of `.emdd` files. 
+This section concerns the syntactical and other rules of `emdd`. 
 
 ### @ Blocks
 
 The general syntax for an `@` block is as follows:
 
 ```js
-@<PLUGIN_IDENTIFIER>(ARG1="VALUE" ARG2="VALUE" ...){
-    <CONTENT>
-};
+@<PLUGIN_IDENTIFIER>(ARG1="VALUE" ARG2="VALUE" ...)
+\```
+<CONTENT>
+\```
 ```
 
 First, an `@` symbol preceeds the identifier of the plugin. This is immediately followed by a space delimited parameter list surrounded by parenthesis; there must be no space between the identifier and the opening parenthesis to be valid. Each parameter is a `KEY="VALUE"` pair where the `KEY` is a sequence of alpha characters and the value is within double quotes.
 
-After the parameters closing parenthesis must immediately follow an opening curly brace, with the content following this. To signify the end of the content, a closing curly brace followed immediately by a semi-colon is required. To allow nesting of this pattern (`};`), in-case of using a programming plugin like the `JSPlugin`, we can escape either the closing curly brace or the semi-colon using a backslash character:
-
-```js
-@js(){
-    const stuff = () => {
-
-    }\;
-};
-```
+After the parameters closing parenthesis must immediately follow three backticks on a line to themself, with the content on the following lines. To signify the end of the content, three backticks on a line by themselves must be used. To allow nesting of this pattern (\`\`\`).
 
 #### Block level
 
-The `@<PLUGIN_IDENTIFIER>(ARG1 ARG2 ...){};` syntax allows the use of a plugin to do something with the contents of its block. An example could be executing some JavaScript and placing the result in the output document:
+The `@<PLUGIN_IDENTIFIER>(ARG1 ARG2 ...)` syntax allows the use of a plugin to do something with the contents of its block. An example could be executing some JavaScript and placing the result in the output document:
 
 ```js
-@js(){
-    let sum = 3 + 3;
-    return <p>Sum of 3 + 3 is ${sum}</p>;
-};
+@js()
+\```
+let sum = 3 + 3;
+return `<p>Sum of 3 + 3 is ${sum}</p>`;
+\```
 ```
 
-Plugins may also be passed arguments that they expect, we can use the `defer` and `name` parameters to defer the execution of a JS block. Instead, a function with the given name is added to the global `context` object of the plugin (NOT IMPLEMENTED):
+Plugins may also be passed arguments that they expect, we can use the `defer` and `name` parameters to defer the execution of a JS block. Instead, a function with the given name is added to the global `context` object of the plugin (NOT IMPLEMENTED YET):
 
 ```js
-@js(defer="true" name="doCalculation"){
-    let sum = 3 + 3;
-    return <p>Sum of 3 + 3 is ${sum}</p>;
-};
+@js(defer="true" name="doCalculation")
+\```
+let sum = 3 + 3;
+return `<p>Sum of 3 + 3 is ${sum}</p>`;
+\```
 ```
 
 We can then use the function at a later stage by accessing the `context` object:
 
-```js
-@js() { return context.doCalculation(); };
+```md
+Putting some math here @js(value="return context.doCalculation();");
 ```
 
 #### In-line block level
 
 If an `@` block is used in-line with Markdown content, it's result will be combined with the markdown. For example:
 
-```js
-Today is a lovely day, at the time of writing it is day @js() { return new Date().day() + 1; } of the week.
+```md
+Today is a lovely day, at the time of writing it is day @js(value="return new Date().day() + 1;"); of the week.
 ```
 
 could become:
@@ -186,32 +181,35 @@ could become:
 
 #### JS Plugin
 
-The JavaScript plugin is almost like having a `<script>` element in your HTML, it allows you to execute JavaScript. Each block you create represents a function:
+The JavaScript plugin is almost like having a `<script>` element in your HTML, it allows you to execute JavaScript but during build-time instead of your websites runtime. Each block you create represents a function:
 
-```
-@js(){
-    console.log("Hello");
-    return "some text";
-}
+```js
+@js()
+\```
+console.log("Hello");
+return "some text";
+\```
 ```
 
-The `return` of a function is output into the document.
+The `return` of a function is output into the document. Return nothing to place nothing into the document.
 
 ##### Context
 
 The JS plugin provides a context, this context persists between blocks and documents as long as the same instance of `JSPlugin` is used:
 
-```
-@js(){
-    context.i = 50;
-    let sum = 3 + 3;
-    return `<p>Sum of 3 + 3 is ${sum}</p>`;
-}
+```js
+@js()
+\```
+context.i = 50;
+let sum = 3 + 3;
+return `<p>Sum of 3 + 3 is ${sum}</p>`;
+\```
 
-@js(){
-    console.log(context.i);
-    return `<p>i was ${context.i}</p>`;
-}
+@js()
+\```
+console.log(context.i);
+return `<p>i was ${context.i}</p>`;
+\```
 ```
 
 To access the shared context, a global state, use the `context` variable which is automatically accessible.
@@ -256,8 +254,8 @@ The `src.copyFilesOfType` list allows you to specify file types to copy over dir
 
 To generate a site from the command-line, run this npm package and pass the `--config` flag:
 
-```
-npx emdd_site --config="./config.json"
+```sh
+npx emdd site --config="./config.json"
 ```
 
 ## Creating plugins
@@ -274,7 +272,7 @@ class ExamplePlugin extends ContentTransformerPlugin {
         super("example", ["arg1"]);
     }
 
-    visit(block) {
+    transform(block) {
         // Do something with the block
     }
 }
@@ -294,20 +292,25 @@ const params = plugin.parameters;
 We can also create `ContentTransformerPlugin`s which are hooked to run before all other content plugins, the `template` plugin is a useful example of a pre-processing plugin:
 
 ```js
-@template(name="title" args="title lead"){
-    <header>
-        <h1>@title;</h1>
-        <p>@lead;</p>
-    </header>
-};
+@template(name="title" args="title lead")
+\```
+<header>
+    <h1>@title;</h1>
+    <p>@lead;</p>
+</header>
+\```
 ```
 
 - Use `@` followed by an argument name and then a `;` to reference an argument in a template
 
-This plugin will register a template with the `Transpiler` instance which can then be weaved during the final stage of processing into the desired content:
+This plugin will register a template with a `WeaveTemplatePlugin` instance which can then be weaved during the final stage of processing into the desired content:
 
 ```js
-@weave(name="title" argsType="json") { "title": "Hello world", "lead": "Some lead text" }
+@weave(name="title")
+\```
+"title": "Hello world", 
+"lead": "Some lead text"
+\```
 ```
 
 The arguments for a template are weaved from a JSON object or a JS object containing properties with the same names. A plugin must have pre-processing enabled to be used in this way.
@@ -316,7 +319,7 @@ The arguments for a template are weaved from a JSON object or a JS object contai
 
 An instance of a `DocumentTransformerPlugin` will take the output of parsing the Markdown and applying the plugins, producing the desired output. This could be a JSX component or a HTML document as quick examples.
 
-A `DocumentTransformerPlugin` must implement a single method, `transform(content, args)`. The `args` are supplied if a `@docType(){}` block is specified in the `.emdd` source being converted.
+A `DocumentTransformerPlugin` must implement a single method, `transform(content, args)`. The `args` are supplied if a `@docType()` block is specified in the `.md` source being converted.
 
 ```js
 class CustomDocTransformPlugin extends DocumentTransformationPlugin {

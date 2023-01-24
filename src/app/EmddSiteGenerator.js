@@ -9,10 +9,14 @@ import { deepLog } from '../utils/logging.js';
 export default class EmddSiteGenerator {
     _weaver;
     _templateProcessor;
+    _preamble;
+    _postamble;
 
     constructor() {
         this._weaver = new WeaveTemplatePlugin();
         this._templateProcessor = new TemplatePreProcessor(this._weaver);
+        this._preamble = "";
+        this._postamble = "";
     }
 
     generateFromConfig(config) {
@@ -32,6 +36,15 @@ export default class EmddSiteGenerator {
             this.loadTemplates(config);
             console.log("@ DONE: Loading templates");
         }
+        // prepare the preamble and postamble
+        if (config.preambleLocation) {
+            const preamblePath = path.resolve(path.dirname(config.configLocation), config.preambleLocation);
+            this._preamble = readFileSync(preamblePath, "utf-8");
+        }
+        if (config.postambleLocation) {
+            const postamblePath = path.resolve(path.dirname(config.configLocation), config.postambleLocation);
+            this._postamble = readFileSync(postamblePath, "utf-8");
+        }
         // transpile and copy all .emdd files
         console.log("@ DOING: Transpiling .emdd to .html and copying to build directory");
         this.transpileAndCopyEmddToHtmlFiles(config);
@@ -43,7 +56,7 @@ export default class EmddSiteGenerator {
         config.templateDirectories.forEach(templateDirectory => {
             const dir = path.resolve(path.dirname(config.configLocation), templateDirectory);
             console.log("@ INFO: Scanning '" + dir + "' for templates");
-            templateFiles.push(...getPathsOfType("emdd", dir));
+            templateFiles.push(...getPathsOfType("md", dir));
         });
         if (!templateFiles) {
             console.log("@ INFO: No template files found");
@@ -60,6 +73,7 @@ export default class EmddSiteGenerator {
             blocks.forEach(block => this._weaver.addTemplate(block));
             // deepLog(this._weaver._templates);
         });
+       
     }
 
     /**
@@ -68,7 +82,7 @@ export default class EmddSiteGenerator {
      */
     transpileAndCopyEmddToHtmlFiles(config) {
         // get files to transpile
-        let filesToTranspile = getPathsOfType("emdd", path.dirname(config.configLocation));
+        let filesToTranspile = getPathsOfType("md", path.dirname(config.configLocation));
         const templateDirectories = config.templateDirectories.map(dir => path.resolve(path.dirname(config.configLocation), dir));
         filesToTranspile = filesToTranspile.filter(file => {
             // get the simple directory name only of the file
@@ -89,7 +103,7 @@ export default class EmddSiteGenerator {
             console.log("@ STATUS: About to transpile '" + filePath + "'");
             let relativePath = filePath.split(path.dirname(config.configLocation))[1];
             filesToCreate.push({
-                relativeFilePath: relativePath.replace(".emdd", ".html"),
+                relativeFilePath: relativePath.replace(".md", ".html"),
                 content: this.transpile(readFileSync(filePath, "utf-8"), config)
             });
             console.log("@ STATUS: Transpiled '" + filePath + "'");
@@ -109,21 +123,29 @@ export default class EmddSiteGenerator {
     }
 
     transpile(src, config) {
-        const tokeniser = new Tokeniser(src, config.contentPluginTypes);
+        const tokeniser = new Tokeniser(src, [...config.contentPluginTypes, ...config.preProcessorTypes]);
         const tokens = tokeniser.tokenise();
         const parser = new Parser(tokens);
         const blocks = parser.parse();
         // deepLog(blocks);
-        const transpiler = new Transpiler(this.getContentPlugins(config.contentPluginTypes));
+        const transpiler = new Transpiler(this.getContentPlugins(config.contentPluginTypes), this.getPreProcessors(config.preProcessorTypes));
         return transpiler.transpile(blocks, this.getDocumentPlugin(config.outputType));
     }
 
     copySupportedFileTypes(config) {
-        const filesToCopy = [];
+        let filesToCopy = [];
         config.supportedFileTypes.forEach(type => {
             filesToCopy.push(...getPathsOfType(type, path.dirname(config.configLocation)));
         });
         
+        // remove postamble and preamble files
+        if (config.preambleLocation || config.postambleLocation) {
+            const preamblePath = path.resolve(path.dirname(config.configLocation), config.preambleLocation);
+            const postamblePath = path.resolve(path.dirname(config.configLocation), config.postambleLocation);
+            filesToCopy = filesToCopy.filter(file => file !== preamblePath && file !== postamblePath);
+        }
+
+        // copy each file
         filesToCopy.forEach(file => {
             const relativePath = file.split(path.dirname(config.configLocation))[1];
             const outputLocation = path.resolve(path.dirname(config.configLocation), config.outputDirectory);
@@ -137,7 +159,7 @@ export default class EmddSiteGenerator {
         console.log("Acquiring document plugin of type: " + type);
         switch (type) {
             case "html5":
-                return new HtmlDocumentTransformer();
+                return new HtmlDocumentTransformer(this._preamble, this._postamble);
             default:
                 throw new SiteConfigurationError("(301): Invalid document type supplied");
         }
@@ -150,8 +172,24 @@ export default class EmddSiteGenerator {
         return plugins;
     }
 
+    getPreProcessors(types) {
+        console.log("Acquiring pre-processors: " + types);
+        const preProcessors = [];
+        types.forEach(type => preProcessors.push(this.getPreProcessor(type)));
+        return preProcessors;
+    }
+
+    getPreProcessor(type) {
+        switch (type) {
+            case "template":
+                return this._templateProcessor;
+            default:
+                throw new SiteConfigurationError("(302): Invalid content plugin type '" + type + "' supplied");
+        }
+    }
+
     getContentPlugin(type) {
-        // console.log("Acquiring content plugin of type: " + type);
+        console.log("Acquiring content plugin of type: " + type);
         switch (type) {
             case "js":
                 return new JSTransformer();
@@ -159,8 +197,6 @@ export default class EmddSiteGenerator {
                 return new LiteralTransformer();
             case "docArgs":
                 return new DocumentArgumentsTransformer();
-            case "template":
-                return this._templateProcessor;
             case "weave":
                 return this._weaver;
             default:
@@ -174,14 +210,16 @@ export class EmddSiteConfiguration {
     _src;
     _contentPlugins;
     _config;
+    _preProcessors;
 
-    constructor(output = {}, src = {}, contentPlugins = [], configLocation) {
+    constructor(output = {}, src = {}, contentPlugins = [], configLocation, preProcessors = []) {
         this._output = output;
         this._src = src;
         this._contentPlugins = contentPlugins;
         this._config = {
             location: configLocation
         }
+        this._preProcessors = preProcessors;
     }
 
     get outputType() { return this._output.type; }
@@ -191,6 +229,9 @@ export class EmddSiteConfiguration {
     get contentPluginTypes() { return this._contentPlugins; }
     get configLocation() { return this._config.location; }
     get templateDirectories() { return this._src.templates; }
+    get preambleLocation() { return this._src.preamble; }
+    get postambleLocation() { return this._src.postamble; }
+    get preProcessorTypes() { return this._preProcessors; }
 }
 
 export class SiteConfigurationError extends Error {
@@ -204,7 +245,7 @@ export function loadSiteConfiguration(configPath) {
     try {
         const configData = readFileSync(configPath, "utf-8");
         const config = JSON.parse(configData);
-        return new EmddSiteConfiguration(config.output, config.src, config.contentPlugins, fullPath);
+        return new EmddSiteConfiguration(config.output, config.src, config.contentPlugins, fullPath, config.preProcessors);
     } catch (error) {
         throw new SiteConfigurationError("(300): Failed to load configuration from '" + fullPath + "'");
     }
