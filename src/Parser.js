@@ -103,7 +103,13 @@ export default class Parser {
         while (this.peek().lexeme === " ") this.advance();
         this.consume(TokenType.QUOTE, "Expected a '\"' after assignment operator");
         // consume upto closing quote, params are space separated, multi-line
-        while (!this.isAtEnd() && !this.check(TokenType.QUOTE)) { parameter.value += this.advance().lexeme; }
+        while (!this.isAtEnd() && !this.check(TokenType.QUOTE)) { 
+            if (this.check(TokenType.BACKSLASH)) {
+                this.advance();
+                parameter.value += this.advance().lexeme;
+            }
+            parameter.value += this.advance().lexeme;
+        }
         // consume closing quote
         this.consume(TokenType.QUOTE, "Expected a '\"' after argument");
         return new Parameter(parameter.name, parameter.value);
