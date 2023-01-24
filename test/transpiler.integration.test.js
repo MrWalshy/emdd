@@ -42,4 +42,16 @@ Followed by some text.`;
         // Assert
         expect(actual).toEqual(expected);
     });
+
+    it("Should transpile @ scripts into Markdown", () => {
+        // Arrange
+        const md = "# This is a h1\n\nSome text @js(value=\"console.log('hello world')\"); yup";
+        const expected = "<h1>This is a h1</h1>\n<p>Some text @js(value=\"console.log('hello world')\"); yup</p>";
+        
+        // Act
+        const actual = transpile(md);
+
+        // Assert
+        expect(actual).toEqual(expected);
+    });
 });
