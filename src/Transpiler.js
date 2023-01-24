@@ -1,14 +1,14 @@
 import { BlockType, UnifiedMarkdownParser } from "./Parser.js";
-import { deepLog } from "./utils/logging.js";
-import types from './utils/types.js';
 
 export default class Transpiler {
     _contentTransformerPlugins;
+    _preProcessors;
     _documentArgs;
     _markdownParser;
 
-    constructor(contentTransformerPlugins = [], markdownParser = new UnifiedMarkdownParser()) {
+    constructor(contentTransformerPlugins = [], preProcessors = [], markdownParser = new UnifiedMarkdownParser()) {
         this._contentTransformerPlugins = contentTransformerPlugins;
+        this._preProcessors = preProcessors;
         this._markdownParser = markdownParser;
         this._documentArgs = {};
     }
@@ -21,25 +21,37 @@ export default class Transpiler {
     transpileBlock(block) {
         if (block.type === BlockType.MARKDOWN) return this.transpileMarkdown(block).trim();
         else if (block.type === BlockType.PLUGIN || block.type === BlockType.INLINE_PLUGIN) return this.transpilePlugin(block);
+        else if (block.type === BlockType.VALUE) return block.value;
         else throw new TranspilerError("Error (4): Unrecognised block transpilation target.");
     }
 
     transpileMarkdown(block) {
+        // transpile each block, there might be nested inline plugin(s)
+        // let output = [];
+        // block.value.forEach(child => {
+        //     output.push({ type: child.type, value: this.transpileBlock(child) });
+        // });
+        // // only parse the markdown
+        // // - inline plugins have already been transpiled and content is ready
+        // const parsedOutput = [];
+        // for (const target of output) {
+        //     if (target.type === BlockType.INLINE_PLUGIN) parsedOutput.push(target.value);
+        //     else parsedOutput.push(this._markdownParser.parse(target.value));
+        // }
+        // return parsedOutput.join("");
         let output = "";
-        block.value.forEach(src => {
-            if (types.get(src) === types.string) output += src;
-            else if (types.get(src) === types.object) output += this.transpileBlock(src);
-            else throw new TranspilerError("Error (3): Unrecognised Markdown transpilation target.");
-        });
+        block.value.forEach(child => output += this.transpileBlock(child));
         return this._markdownParser.parse(output);
     }
 
     transpilePlugin(block) {
-        const plugin = this._contentTransformerPlugins.find(plugin => plugin.name === block._identifier);
+        const plugin = this._contentTransformerPlugins.find(plugin => plugin.name === block.identifier);
         if (!plugin) throw new TranspilerError(`Error (5): Plugin not found for ${block._identifier}`);
-        if (plugin.name === "docArgs") this._documentArgs = plugin.transform(block);
+        if (plugin.name === "docArgs") {
+            this._documentArgs = plugin.transform(block);
+            return "";
+        }
         else return plugin.transform(block);
-        return "";
     }
 
     transpile(blocks = [], documentTransformerPlugin) {
@@ -52,10 +64,9 @@ export default class Transpiler {
 
     preProcess(blocks) {
         const output = [];
-        const preProcessors = this._contentTransformerPlugins.filter(plugin => plugin.isPreProcessor());
-        if (preProcessors.length === 0) return blocks;
+        if (this._preProcessors.length === 0) return blocks;
         blocks.forEach(block => {
-            const preProcessor = preProcessors.find(processor => processor.name === block.identifier);
+            const preProcessor = this._preProcessors.find(processor => processor.name === block.identifier);
             if (!preProcessor) output.push(block);
             else {
                 const preProcessedBlock = preProcessor.transform(block);
@@ -124,6 +135,7 @@ export class TemplatePreProcessor extends PreProcessingContentPlugin {
 
     transform(block) {
         this._weaver.addTemplate(block);
+        return "";
     }
 }
 
@@ -140,7 +152,10 @@ export class WeaveTemplatePlugin extends ContentTransformerPlugin {
         if (!weaveNameParam) throw new Error("Template weave parameter 'name' not supplied");
         const template = this._templates[weaveNameParam.value];
         if (!template) throw new Error("Could not find template with name '" + weaveNameParam.value + "'");
-        return this.weave(block, template);
+        if (block.type === BlockType.INLINE_PLUGIN) return this.weaveInline(block, template);
+        const weaveArgs = JSON.parse(`{${block.value.value}}`);
+        console.log(weaveArgs)
+        return this.weave(template, weaveArgs);
     }
 
     addTemplate(block) {
@@ -149,18 +164,26 @@ export class WeaveTemplatePlugin extends ContentTransformerPlugin {
         this._templates[templateNameParameter.value] = block;
     }
 
-    weave(weaveBlock, templateBlock) {
-        const weaveArgs = JSON.parse(`{${weaveBlock.value}}`);
-
+    weave(templateBlock, weaveArgs) {
         // expected params of template
         let expectedParams = templateBlock.parameters.find(param => param.name === "args");
         if (expectedParams) expectedParams = expectedParams.length === 0 ? [] : expectedParams.value.split(" ");
         
         // prepare output
-        let output = templateBlock.value;
+        let output = templateBlock.value.value;
         if (expectedParams) expectedParams.forEach(param => output = output.replace(`@${param};`, weaveArgs[param] || ""));
 
         return output;
+    }
+
+    weaveInline(block, template) {
+        // capture reserved parameter 'name', every other param is a weave arg
+        const weaveArgs = {};
+        const params = block.parameters.filter(param => param.name !== "name");
+        for (const param of params) {
+            weaveArgs[param.name] = param.value;
+        }
+        return this.weave(template, weaveArgs);
     }
 }
 
@@ -232,7 +255,6 @@ export class HtmlDocumentTransformer extends DocumentTransformerPlugin {
 
 export class JSTransformer extends ContentTransformerPlugin {
 
-    // Shared context between parses
     _context = {};
 
     constructor() {
@@ -240,7 +262,12 @@ export class JSTransformer extends ContentTransformerPlugin {
     }
 
     transform(block) {
-        return Function("context", block.value)(this._context);
+        if (block.type === BlockType.INLINE_PLUGIN) {
+            const valueParam = block.parameters.find(param => param.name === "value");
+            if (!valueParam) throw new TranspilerError("JSTransformer: Could not find 'value' for inline plugin.");
+            return Function("context", valueParam.value)(this._context) || "";
+        }
+        return Function("context", block.value.value)(this._context) || "";
     }
 }
 
@@ -250,7 +277,7 @@ export class LiteralTransformer extends ContentTransformerPlugin {
     }
 
     transform(block) {
-        return block.value;
+        return block.value.value;
     }
 }
 
@@ -264,7 +291,7 @@ export class DocumentArgumentsTransformer extends ContentTransformerPlugin {
  
     transform(block) {
         try {
-            return JSON.parse(block.value);
+            return JSON.parse("{" + block.value.value + "}");
         } catch (e) {
             console.warn(e);
             return {};
