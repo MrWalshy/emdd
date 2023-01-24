@@ -61,8 +61,9 @@ export default class Parser {
         this.consume(TokenType.NEWLINE, "Expected newline after plugin body.");
         this.consumeCount(TokenType.BACK_TICK, 3, "Expected '```' to signal end of plugin body");
         while (this.peek().lexeme === " ") this.advance();
-        try { this.consume(TokenType.NEWLINE, "Expected newline or EOF after '```'"); }
-        catch (error) { this.consume(TokenType.EOF, "Expected newline or EOF after '```'"); }
+        if (!this.isAtEnd()) this.consume(TokenType.NEWLINE, "Expected newline or EOF after '```'");
+        // try { this.consume(TokenType.NEWLINE, "Expected newline or EOF after '```'"); }
+        // catch (error) { this.consume(TokenType.EOF, "Expected newline or EOF after '```'"); }
 
         return new Block(BlockType.VALUE, null, null, value);
     }
@@ -113,11 +114,15 @@ export default class Parser {
     }
 
     plugin() {
-        const type = !this.previous() || this.previous().tokenType === TokenType.NEWLINE ? BlockType.PLUGIN : BlockType.INLINE_PLUGIN;
+        // const type = !this.previous() || this.previous().tokenType === TokenType.NEWLINE ? BlockType.PLUGIN : BlockType.INLINE_PLUGIN;
+        let type;
+        if (!this.previous() || this.previous().tokenType === TokenType.NEWLINE) type = BlockType.PLUGIN;
+        else type = BlockType.INLINE_PLUGIN;
         this.advance(); // past '@'
         const identifier = this.advance(); // PLUGIN_IDENTIFIER
         const parameters = this.parameters();
 
+        // if (this.peek().type === TokenType.SEMI_COLON) type === BlockType.INLINE_PLUGIN;
         if (type === BlockType.INLINE_PLUGIN) {
             this.consume(TokenType.SEMI_COLON, "Expected ';' after inline plugin arguments. Usage: @<IDENTIFIER>(<ARG1=\"VALUE\"> <...>);");
             return new Block(type, identifier.lexeme, parameters, []);
@@ -256,10 +261,10 @@ export class UnifiedMarkdownParser extends MarkdownParser {
             .use(remarkParse)
             // .use(remarkMath)
             .use(remarkGfm)
-            .use(remarkRehype) // MD AST -> HTML AST
+            .use(remarkRehype, { allowDangerousHtml: true }) // MD AST -> HTML AST
             .use(rehypeKatex) // math symbols, similar to latex
             .use(rehypeFormat)
-            .use(rehypeStringify); // HTML AST to HTML text
+            .use(rehypeStringify, { allowDangerousCharacters: true, allowDangerousHtml: true }); // HTML AST to HTML text
     }
 
     parse(src) {

@@ -9,7 +9,7 @@ export default class Tokeniser {
     _line;
     _linePosition;
 
-    constructor(src, pluginIdentifiers) {
+    constructor(src, pluginIdentifiers = []) {
         this._src = src;
         this._pluginIdentifiers = pluginIdentifiers;
         this._tokens = [];
@@ -67,6 +67,9 @@ export default class Tokeniser {
                 break;
             case ";":
                 this.addToken(new Token(TokenType.SEMI_COLON, ";"));
+                break;
+            case "\r":
+            case "\f":
                 break;
             default:
                 if (this.isAlpha(currentCharacter) && this._tokens[this._tokens.length - 1].lexeme == "@") this.pluginIdentifier(currentCharacter);
