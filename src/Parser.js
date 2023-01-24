@@ -122,7 +122,9 @@ export default class Parser {
         const identifier = this.advance(); // PLUGIN_IDENTIFIER
         const parameters = this.parameters();
 
-        // if (this.peek().type === TokenType.SEMI_COLON) type === BlockType.INLINE_PLUGIN;
+        if (this.check(TokenType.SEMI_COLON)) type = BlockType.INLINE_PLUGIN;
+        // console.log("HERE")
+        // deepLog(this.peek())
         if (type === BlockType.INLINE_PLUGIN) {
             this.consume(TokenType.SEMI_COLON, "Expected ';' after inline plugin arguments. Usage: @<IDENTIFIER>(<ARG1=\"VALUE\"> <...>);");
             return new Block(type, identifier.lexeme, parameters, []);
