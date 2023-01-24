@@ -105,4 +105,16 @@ return 3 + 3;
         // Assert
         expect(actual).toEqual(expected);
     });
+
+    it("Should allow quotes to be escaped in parameters", () => {
+        // Arrange
+        const md = `@js(value="return \\"hello world\\";");`;
+        const expected = "hello world";
+        
+        // Act
+        const actual = transpile(md);
+
+        // Assert
+        expect(actual).toEqual(expected);
+    });
 });
