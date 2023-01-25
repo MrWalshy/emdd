@@ -64,7 +64,10 @@ export default class Transpiler {
 
     transpilePlugin(block) {
         const plugin = this._contentTransformerPlugins.find(plugin => plugin.name === block.identifier);
-        if (!plugin) throw new TranspilerError(`Error (5): Plugin not found for ${block._identifier}`);
+        if (!plugin) {
+            deepLog(block)
+            throw new TranspilerError(`Error (5): Plugin not found for ${block._identifier}`);
+        }
         if (plugin.name === "docArgs") {
             this._documentArgs = plugin.transform(block);
             return "";
@@ -83,6 +86,7 @@ export default class Transpiler {
                 if (preProcessedBlock) output.push(block);
             }
         });
+        // deepLog(output)
         return output;
     }
 

@@ -1,3 +1,4 @@
+import { Block, BlockType } from "../../../Parser.js";
 import Token, { TokenType } from "../../../Token.js";
 import Tokeniser from "../../../Tokeniser.js";
 import { deepLog } from "../../../utils/logging.js";
@@ -7,14 +8,14 @@ export default class HtmlTocProcessor extends PostProcessor {
     
     transform(blocks) {
         try {
-            let tocBlockIndex = blocks.findIndex(block => block.value === "@+toc+@");
+            let tocBlockIndex = blocks.findIndex(block => block.srcBlock.identifier === "toc");
             if (tocBlockIndex === -1) return blocks;
             const headings = this.identifyHeadings(blocks);
             const html = this.toHtml(headings);
 
             while (tocBlockIndex != -1) {
                 blocks[tocBlockIndex].value = html;
-                tocBlockIndex = blocks.findIndex(block => block.value === "@+toc+@");
+                tocBlockIndex = blocks.findIndex(block => block.srcBlock.identifier  === "toc" && block.value === "");
             }
             return blocks;
         } catch (error) {
@@ -24,11 +25,11 @@ export default class HtmlTocProcessor extends PostProcessor {
     }
 
     toHtml(headings) {
-        const output = ["\n    <ul id=\"toc\">"];
+        const output = ["\n    <ul class=\"toc\">"];
         headings.forEach(heading => {
             output.push(`        <li class="${heading.identifier.lexeme}-toc">${heading.content}</li>`);
         });
-        output.push("    <ul>");
+        output.push("    <ul>\n");
         return output.join("\n");
     }
 
