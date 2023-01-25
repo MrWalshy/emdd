@@ -4,12 +4,14 @@ import { BlockType, UnifiedMarkdownParser } from "./Parser.js";
 export default class Transpiler {
     _contentTransformerPlugins;
     _preProcessors;
+    _postProcessors;
     _documentArgs;
     _markdownParser;
 
-    constructor(contentTransformerPlugins = [], preProcessors = [], markdownParser = new UnifiedMarkdownParser()) {
+    constructor(contentTransformerPlugins = [], preProcessors = [], postProcessors = [], markdownParser = new UnifiedMarkdownParser()) {
         this._contentTransformerPlugins = contentTransformerPlugins;
         this._preProcessors = preProcessors;
+        this._postProcessors = postProcessors;
         this._markdownParser = markdownParser;
         this._documentArgs = {};
     }
@@ -23,7 +25,9 @@ export default class Transpiler {
             output += transpilationOutput;
             transpiledBlocks.push(new TranspiledBlock(block, transpilationOutput));
         });
-        if (documentTransformerPlugin) return documentTransformerPlugin.transform(transpiledBlocks, this._documentArgs);
+        const postProcessedBlocks = this.postProcess(transpiledBlocks);
+        // deepLog(postProcessedBlocks);
+        if (documentTransformerPlugin) return documentTransformerPlugin.transform(postProcessedBlocks, this._documentArgs);
         return output;
     }
 
@@ -60,7 +64,10 @@ export default class Transpiler {
 
     transpilePlugin(block) {
         const plugin = this._contentTransformerPlugins.find(plugin => plugin.name === block.identifier);
-        if (!plugin) throw new TranspilerError(`Error (5): Plugin not found for ${block._identifier}`);
+        if (!plugin) {
+            deepLog(block)
+            throw new TranspilerError(`Error (5): Plugin not found for ${block._identifier}`);
+        }
         if (plugin.name === "docArgs") {
             this._documentArgs = plugin.transform(block);
             return "";
@@ -79,6 +86,13 @@ export default class Transpiler {
                 if (preProcessedBlock) output.push(block);
             }
         });
+        // deepLog(output)
+        return output;
+    }
+
+    postProcess(blocks) {
+        let output = blocks;
+        this._postProcessors.forEach(processor => output = processor.transform(blocks));
         return output;
     }
 }
@@ -100,4 +114,5 @@ export class TranspiledBlock {
 
     get srcBlock() { return this._srcBlock; }
     get value() { return this._value; }
+    set value(val) { this._value = val; }
 }

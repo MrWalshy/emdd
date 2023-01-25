@@ -9,12 +9,15 @@ import types from "./src/utils/types.js";
 import DocumentTransformerPlugin from "./src/plugins/DocumentTransformerPlugin.js";
 import ContentTransformerPlugin from "./src/plugins/ContentTransformerPlugin.js";
 import PreProcessingContentPlugin from "./src/plugins/PreProcessingContentPlugin.js";
+import PostProcessor from "./src/plugins/PostProcessor.js";
 import DocumentArgumentsTransformer from "./src/plugins/built_in/DocumentArgumentsTransformer.js";
 import HtmlDocumentTransformer from "./src/plugins/built_in/HtmlDocumentTransformer.js";
 import JSTransformer from "./src/plugins/built_in/JSTransformer.js";
 import LiteralTransformer from "./src/plugins/built_in/LiteralTransformer.js";
 import TemplatePreProcessor from "./src/plugins/built_in/TemplatePreProcessor.js";
 import WeaveTemplatePlugin from "./src/plugins/built_in/WeaveTemplatePlugin.js";
+import HtmlTocContentProcessor from "./src/plugins/built_in/content_processors/HtmlTocContentProcessor.js";
+import HtmlTocProcessor from "./src/plugins/built_in/post_processors/HtmlTocProcessor.js";
 
 export * from './src/Parser.js';
 export * from './src/Token.js';
@@ -25,9 +28,10 @@ export * from './src/utils/file.js';
 export * from './src/utils/logging.js';
 export { 
     Parser, Token, Tokeniser, Transpiler, EmddSiteGenerator, types,
-    DocumentTransformerPlugin, ContentTransformerPlugin, PreProcessingContentPlugin,
+    DocumentTransformerPlugin, ContentTransformerPlugin, PreProcessingContentPlugin, PostProcessor,
     DocumentArgumentsTransformer, HtmlDocumentTransformer, JSTransformer, LiteralTransformer,
-    TemplatePreProcessor, WeaveTemplatePlugin 
+    TemplatePreProcessor, WeaveTemplatePlugin,
+    HtmlTocContentProcessor, HtmlTocProcessor
 };
 
 class CommandArgumentError extends Error {

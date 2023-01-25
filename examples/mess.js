@@ -1,11 +1,17 @@
 import {deepLog, TemplatePreProcessor, Tokeniser, WeaveTemplatePlugin} from "../emdd.js";
 import { Parser, BlockType, UnifiedMarkdownParser, UnimplementedError } from "../emdd.js";
 import { Transpiler, DocumentArgumentsTransformer, HtmlDocumentTransformer, JSTransformer, LiteralTransformer } from "../emdd.js";
+import HtmlTocContentProcessor from "../src/plugins/built_in/content_processors/HtmlTocContentProcessor.js";
+import HtmlTocProcessor from "../src/plugins/built_in/post_processors/HtmlTocProcessor.js";
 
 ///////// MAIN //////////
 const emdd = `# My title
 
+## My secondary title
+
 Some text
+
+@toc();
 
 @js()
 \`\`\`
@@ -49,7 +55,7 @@ Inline plugins @js(value="
 
 
 
-const tokeniser = new Tokeniser(emdd, ["js", "lit", "docArgs", "template", "weave"]);
+const tokeniser = new Tokeniser(emdd, ["js", "lit", "docArgs", "template", "weave", "toc"]);
 const tokens = tokeniser.tokenise();
 // deepLog(tokens);
 const parser = new Parser(tokens);
@@ -57,8 +63,8 @@ const blocks = parser.parse();
 // deepLog(blocks);
 const weaver = new WeaveTemplatePlugin();
 const templater = new TemplatePreProcessor(weaver);
-const contentTransformerPlugins = [new JSTransformer(), new LiteralTransformer(), new DocumentArgumentsTransformer(), weaver];
+const contentTransformerPlugins = [new JSTransformer(), new LiteralTransformer(), new DocumentArgumentsTransformer(), new HtmlTocContentProcessor(), weaver];
 const htmlDocumentTransformer = new HtmlDocumentTransformer();
-const transpiler = new Transpiler(contentTransformerPlugins, [templater]);
+const transpiler = new Transpiler(contentTransformerPlugins, [templater], [new HtmlTocProcessor()]);
 // // deepLog(blocks);
 console.log(transpiler.transpile(blocks, htmlDocumentTransformer));
