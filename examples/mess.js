@@ -37,7 +37,7 @@ return \`<p>Sum of 3 + 3 is \${sum}</p>\`;
 "lead": "Some leading text"
 \`\`\`
 
- @weave(name="title" text="Hello world 2" lead="Some more lead");
+@weave(name="title" text="Hello world 2" lead="Some more lead");
 
 Some more markdown following the @ block.
 

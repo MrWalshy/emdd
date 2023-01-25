@@ -81,4 +81,40 @@ return 3 + 3;
         // Assert
         expect(actual).toEqual(expected);
     });
+
+    it("Should execute and transpile an inline-block of JavaScript to its result even if at the beginning of a line", () => {
+        // Arrange
+        const md = `@js(value="return 3 + 3;");`;
+        const expected = "6";
+        
+        // Act
+        const actual = transpile(md);
+
+        // Assert
+        expect(actual).toEqual(expected);
+    });
+
+    it("Should treat inline-blocks at the start of a line as if it was a block call", () => {
+        // Arrange
+        const md = `@js(value="return 3 + 3;"); Hello world`;
+        const expected = "6<p>Hello world</p>";
+
+        // Act
+        const actual = transpile(md);
+
+        // Assert
+        expect(actual).toEqual(expected);
+    });
+
+    it("Should allow quotes to be escaped in parameters", () => {
+        // Arrange
+        const md = `@js(value="return \\"hello world\\";");`;
+        const expected = "hello world";
+        
+        // Act
+        const actual = transpile(md);
+
+        // Assert
+        expect(actual).toEqual(expected);
+    });
 });

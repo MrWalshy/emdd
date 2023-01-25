@@ -154,7 +154,6 @@ export class WeaveTemplatePlugin extends ContentTransformerPlugin {
         if (!template) throw new Error("Could not find template with name '" + weaveNameParam.value + "'");
         if (block.type === BlockType.INLINE_PLUGIN) return this.weaveInline(block, template);
         const weaveArgs = JSON.parse(`{${block.value.value}}`);
-        console.log(weaveArgs)
         return this.weave(template, weaveArgs);
     }
 
