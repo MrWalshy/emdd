@@ -117,4 +117,38 @@ return 3 + 3;
         // Assert
         expect(actual).toEqual(expected);
     });
+
+    it("Should allow for deferred execution of JavaScript", () => {
+        // Arrange
+        const deferredMd = `@js(name="doSomething" defer="true" value="return 3 + 3;");`;
+        const md = `@js(call="doSomething");`;
+        const expected = "6";
+        
+        // Act
+        transpile(deferredMd);
+        const actual = transpile(md);
+
+        // Assert
+        expect(actual).toEqual(expected);
+    });
+
+    it("Should allow for deferred execution of JavaScript using full @ block syntax", () => {
+        // Arrange
+        const deferredMd = `@js(name="doSomething" defer="true")
+\`\`\`
+return 3 + 3;
+\`\`\``;
+        const md = `@js(call="doSomething")
+\`\`\`
+
+\`\`\``;
+        const expected = "6";
+        
+        // Act
+        transpile(deferredMd);
+        const actual = transpile(md);
+
+        // Assert
+        expect(actual).toEqual(expected);
+    });
 });
