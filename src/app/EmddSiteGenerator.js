@@ -2,7 +2,8 @@ import { readFileSync, writeFileSync, existsSync, cpSync, mkdirSync } from 'fs';
 import path from 'path';
 import Parser from '../Parser.js';
 import Tokeniser from '../Tokeniser.js';
-import Transpiler, { DocumentArgumentsTransformer, HtmlDocumentTransformer, JSTransformer, LiteralTransformer, TemplatePreProcessor, WeaveTemplatePlugin } from '../Transpiler.js';
+import Transpiler from '../Transpiler.js';
+import { DocumentArgumentsTransformer, HtmlDocumentTransformer, JSTransformer, LiteralTransformer, TemplatePreProcessor, WeaveTemplatePlugin } from '../../emdd.js';
 import { createDirectory, getPathsOfType } from "../utils/file.js";
 import { deepLog } from '../utils/logging.js';
 

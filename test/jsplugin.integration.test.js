@@ -1,6 +1,7 @@
 import Parser from "../src/Parser.js";
 import Tokeniser from "../src/Tokeniser.js";
-import Transpiler, { JSTransformer } from "../src/Transpiler.js";
+import Transpiler from "../src/Transpiler.js";
+import { JSTransformer } from "../emdd.js";
 
 describe("INTEGRATION TEST: Executing and transforming JavaScript to HTML", () => {
     let transpiler;
