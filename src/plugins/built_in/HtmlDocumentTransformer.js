@@ -1,3 +1,4 @@
+import { BlockType } from "../../Parser.js";
 import DocumentTransformerPlugin from "../DocumentTransformerPlugin.js";
 
 export default class HtmlDocumentTransformer extends DocumentTransformerPlugin {
@@ -10,8 +11,9 @@ export default class HtmlDocumentTransformer extends DocumentTransformerPlugin {
         this._postamble = postamble;
     }
 
-    transform(src, args) {
+    transform(blocks, args) {
         const argMap = this._validateArgs(args);
+        const content = this._contentFromBlocks(blocks);
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,12 +25,18 @@ export default class HtmlDocumentTransformer extends DocumentTransformerPlugin {
 </head>
 <body>
     ${this._preamble}
-    ${src}
+    ${content}
     ${this._postamble}
     ${argMap.scripts.join("\n" + " ".repeat(4)) || ""}
 </body>
 </html>
 `;
+    }
+
+    _contentFromBlocks(blocks) {
+        let output = "";
+        blocks.forEach(block => output += block.value);
+        return output;
     }
 
     _validateArgs(args) {

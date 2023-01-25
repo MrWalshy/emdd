@@ -14,6 +14,19 @@ export default class Transpiler {
         this._documentArgs = {};
     }
 
+    transpile(blocks = [], documentTransformerPlugin) {
+        const processedBlocks = this.preProcess(blocks);
+        let output = "";
+        let transpiledBlocks = [];
+        processedBlocks.forEach(block => {
+            const transpilationOutput = this.transpileBlock(block)
+            output += transpilationOutput;
+            transpiledBlocks.push(new TranspiledBlock(block, transpilationOutput));
+        });
+        if (documentTransformerPlugin) return documentTransformerPlugin.transform(transpiledBlocks, this._documentArgs);
+        return output;
+    }
+
     /**
      * Returns the string result of transpilation.
      * @param {*} block 
@@ -55,14 +68,6 @@ export default class Transpiler {
         else return plugin.transform(block);
     }
 
-    transpile(blocks = [], documentTransformerPlugin) {
-        const processedBlocks = this.preProcess(blocks);
-        let output = "";
-        processedBlocks.forEach(block => output += this.transpileBlock(block));
-        if (documentTransformerPlugin) return documentTransformerPlugin.transform(output, this._documentArgs);
-        return output;
-    }
-
     preProcess(blocks) {
         const output = [];
         if (this._preProcessors.length === 0) return blocks;
@@ -82,4 +87,17 @@ export class TranspilerError extends Error {
     constructor(message) {
         super(message);
     }
+}
+
+export class TranspiledBlock {
+    _srcBlock;
+    _value;
+
+    constructor(srcBlock, value) {
+        this._srcBlock = srcBlock;
+        this._value = value;
+    }
+
+    get srcBlock() { return this._srcBlock; }
+    get value() { return this._value; }
 }
