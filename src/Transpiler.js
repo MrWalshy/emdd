@@ -1,3 +1,4 @@
+import { deepLog } from "../emdd.js";
 import { BlockType, UnifiedMarkdownParser } from "./Parser.js";
 
 export default class Transpiler {
@@ -261,12 +262,32 @@ export class JSTransformer extends ContentTransformerPlugin {
     }
 
     transform(block) {
-        if (block.type === BlockType.INLINE_PLUGIN) {
-            const valueParam = block.parameters.find(param => param.name === "value");
-            if (!valueParam) throw new TranspilerError("JSTransformer: Could not find 'value' for inline plugin.");
-            return Function("context", valueParam.value)(this._context) || "";
-        }
+        if (block.type === BlockType.INLINE_PLUGIN) return this.transformInline(block);
         return Function("context", block.value.value)(this._context) || "";
+    }
+
+    transformInline(block) {
+        const callParam = block.parameters.find(param => param.name === "call");
+        if (callParam) try {
+            return this._context[callParam.value](this._context);
+        } catch (error) {
+            console.warn("Function with name '" + callParam.value + "' does not exist in the current context.");
+        }
+
+        const nameParam = block.parameters.find(param => param.name === "name");
+        const deferParam = block.parameters.find(param => param.name === "defer");
+        const valueParam = block.parameters.find(param => param.name === "value");
+        deepLog([callParam, nameParam, deferParam, valueParam])
+        if (!callParam && !valueParam) throw new TranspilerError("JSTransformer: Could not find 'value' or 'call' argument for inline plugin.");
+        if (callParam && valueParam) throw new TranspilerError("JSTransformer: 'call' and 'value' cannot both be specified.");
+        if (nameParam && deferParam && deferParam.value === "true") {
+            this._context[nameParam.value] = new Function("context", valueParam.value);
+            return "";
+        } else if (nameParam) {
+            // if not deferring execution, store a copy of the function and execute
+            this._context[nameParam.value] = new Function("context", valueParam.value);
+        }
+        return Function("context", valueParam.value)(this._context) || "";
     }
 }
 
