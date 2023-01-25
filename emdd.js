@@ -50,10 +50,7 @@ try {
         case "site":
             if (args.config) new EmddSiteGenerator().generateFromConfig(loadSiteConfiguration(args.config));
             break;
-        default:
-            throw new CommandArgumentError("No valid parameters passed");
     }
-    
 } catch (error) {
     console.log();
     logTitleBlock("FATAL WARNING!", 12);
