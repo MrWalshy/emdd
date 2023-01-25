@@ -1,11 +1,19 @@
 import {deepLog, TemplatePreProcessor, Tokeniser, WeaveTemplatePlugin} from "../emdd.js";
 import { Parser, BlockType, UnifiedMarkdownParser, UnimplementedError } from "../emdd.js";
 import { Transpiler, DocumentArgumentsTransformer, HtmlDocumentTransformer, JSTransformer, LiteralTransformer } from "../emdd.js";
+import HtmlTocProcessor from "../src/plugins/built_in/post_processors/HtmlTocProcessor.js";
 
 ///////// MAIN //////////
 const emdd = `# My title
 
+## My secondary title
+
 Some text
+
+@lit()
+\`\`\`
+@+toc+@
+\`\`\`
 
 @js()
 \`\`\`
@@ -59,6 +67,6 @@ const weaver = new WeaveTemplatePlugin();
 const templater = new TemplatePreProcessor(weaver);
 const contentTransformerPlugins = [new JSTransformer(), new LiteralTransformer(), new DocumentArgumentsTransformer(), weaver];
 const htmlDocumentTransformer = new HtmlDocumentTransformer();
-const transpiler = new Transpiler(contentTransformerPlugins, [templater]);
+const transpiler = new Transpiler(contentTransformerPlugins, [templater], [new HtmlTocProcessor()]);
 // // deepLog(blocks);
 console.log(transpiler.transpile(blocks, htmlDocumentTransformer));
