@@ -16,23 +16,22 @@ If you would like to contribute to Extensible Markdown, please visit the GitHub 
 
 The following is an example of an EXMD document:
 
-```md
-@docArgs()
-\```
-"title": "Example page"
-\```
+    @docArgs()
+    ```
+    "title": "Example page"
+    ```
 
-# Title
+    # Title
 
-Some paragraph text. Some paragraph text. Some paragraph text. Some paragraph text. Some paragraph text. Some paragraph text. Some paragraph text. 
-Some paragraph text. Some paragraph text. Some paragraph text. Some paragraph text. Some paragraph text. Some paragraph text. 
-Some paragraph text. Some paragraph text. Some paragraph text.
+    Some paragraph text. Some paragraph text. Some paragraph text. Some paragraph text. Some paragraph text. Some paragraph text. Some paragraph text. 
+    Some paragraph text. Some paragraph text. Some paragraph text. Some paragraph text. Some paragraph text. Some paragraph text. 
+    Some paragraph text. Some paragraph text. Some paragraph text.
 
-@js()
-\```
-let sum = 3 + 3;
-return `<p>Sum of 3 + 3 is ${sum}</p>`;
-\```
+    @js()
+    ```
+    let sum = 3 + 3;
+    return `<p>Sum of 3 + 3 is ${sum}</p>`;
+    ```
 
 After transpilation to HTML, the contents of the document would roughly look as follows:
 
@@ -69,22 +68,20 @@ Currently, EMDD can be used by programatically building the transpiler in your p
 
 First, we must create a valid `emdd` document:
 
-```js
-const emdd = `# My title
+    const emdd = `# My title
 
-Some text
+    Some text
 
-@js()
-\`\`\`
-let sum = 3 + 3;
-return \`<p>Sum of 3 + 3 is ${sum}</p>\`;
-\`\`\`
+    @js()
+    ```
+    let sum = 3 + 3;
+    return `<p>Sum of 3 + 3 is ${sum}</p>`;
+    ```
 
-Some more markdown following the @ block.
+    Some more markdown following the @ block.
 
-Inline plugins @js(value="return 3 + 3"); should be supported.
-`;
-```
+    Inline plugins @js(value="return 3 + 3"); should be supported.
+    `;
 
 Now, we can create a new `Tokeniser`. We must pass the `md` source content and an array of plugin identifiers. The plugin identifiers are the names of the content transformation plugins you are using in your document, a **content transformation plugin** is used to transform an `@` block of content.
 
@@ -124,12 +121,10 @@ This section concerns the syntactical and other rules of `emdd`.
 
 The general syntax for an `@` block is as follows:
 
-```js
-@<PLUGIN_IDENTIFIER>(ARG1="VALUE" ARG2="VALUE" ...)
-\```
-<CONTENT>
-\```
-```
+    @<PLUGIN_IDENTIFIER>(ARG1="VALUE" ARG2="VALUE" ...)
+    ```
+    <CONTENT>
+    ```
 
 First, an `@` symbol preceeds the identifier of the plugin. This is immediately followed by a space delimited parameter list surrounded by parenthesis; there must be no space between the identifier and the opening parenthesis to be valid. Each parameter is a `KEY="VALUE"` pair where the `KEY` is a sequence of alpha characters and the value is within double quotes.
 
@@ -139,23 +134,19 @@ After the parameters closing parenthesis must immediately follow three backticks
 
 The `@<PLUGIN_IDENTIFIER>(ARG1 ARG2 ...)` syntax allows the use of a plugin to do something with the contents of its block. An example could be executing some JavaScript and placing the result in the output document:
 
-```js
-@js()
-\```
-let sum = 3 + 3;
-return `<p>Sum of 3 + 3 is ${sum}</p>`;
-\```
-```
+    @js()
+    ```
+    let sum = 3 + 3;
+    return `<p>Sum of 3 + 3 is ${sum}</p>`;
+    ```
 
 Plugins may also be passed arguments that they expect, we can use the `defer` and `name` parameters to defer the execution of a JS block. Instead, a function with the given name is added to the global `context` object of the plugin (NOT IMPLEMENTED YET):
 
-```js
-@js(defer="true" name="doCalculation")
-\```
-let sum = 3 + 3;
-return `<p>Sum of 3 + 3 is ${sum}</p>`;
-\```
-```
+    @js(defer="true" name="doCalculation")
+    ```
+    let sum = 3 + 3;
+    return `<p>Sum of 3 + 3 is ${sum}</p>`;
+    ```
 
 We can then use the function at a later stage by accessing the `context` object:
 
@@ -183,13 +174,11 @@ could become:
 
 The JavaScript plugin is almost like having a `<script>` element in your HTML, it allows you to execute JavaScript but during build-time instead of your websites runtime. Each block you create represents a function:
 
-```js
-@js()
-\```
-console.log("Hello");
-return "some text";
-\```
-```
+    @js()
+    ```
+    console.log("Hello");
+    return "some text";
+    ```
 
 The `return` of a function is output into the document. Return nothing to place nothing into the document.
 
@@ -197,20 +186,18 @@ The `return` of a function is output into the document. Return nothing to place 
 
 The JS plugin provides a context, this context persists between blocks and documents as long as the same instance of `JSPlugin` is used:
 
-```js
-@js()
-\```
-context.i = 50;
-let sum = 3 + 3;
-return `<p>Sum of 3 + 3 is ${sum}</p>`;
-\```
+    @js()
+    ```
+    context.i = 50;
+    let sum = 3 + 3;
+    return `<p>Sum of 3 + 3 is ${sum}</p>`;
+    ```
 
-@js()
-\```
-console.log(context.i);
-return `<p>i was ${context.i}</p>`;
-\```
-```
+    @js()
+    ```
+    console.log(context.i);
+    return `<p>i was ${context.i}</p>`;
+    ```
 
 To access the shared context, a global state, use the `context` variable which is automatically accessible.
 
@@ -291,27 +278,23 @@ const params = plugin.parameters;
 
 We can also create `ContentTransformerPlugin`s which are hooked to run before all other content plugins, the `template` plugin is a useful example of a pre-processing plugin:
 
-```js
-@template(name="title" args="title lead")
-\```
-<header>
-    <h1>@title;</h1>
-    <p>@lead;</p>
-</header>
-\```
-```
+    @template(name="title" args="title lead")
+    ```
+    <header>
+        <h1>@title;</h1>
+        <p>@lead;</p>
+    </header>
+    ```
 
 - Use `@` followed by an argument name and then a `;` to reference an argument in a template
 
 This plugin will register a template with a `WeaveTemplatePlugin` instance which can then be weaved during the final stage of processing into the desired content:
 
-```js
-@weave(name="title")
-\```
-"title": "Hello world", 
-"lead": "Some lead text"
-\```
-```
+    @weave(name="title")
+    ```
+    "title": "Hello world", 
+    "lead": "Some lead text"
+    ```
 
 The arguments for a template are weaved from a JSON object or a JS object containing properties with the same names. A plugin must have pre-processing enabled to be used in this way.
 
