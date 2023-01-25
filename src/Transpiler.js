@@ -4,12 +4,14 @@ import { BlockType, UnifiedMarkdownParser } from "./Parser.js";
 export default class Transpiler {
     _contentTransformerPlugins;
     _preProcessors;
+    _postProcessors;
     _documentArgs;
     _markdownParser;
 
-    constructor(contentTransformerPlugins = [], preProcessors = [], markdownParser = new UnifiedMarkdownParser()) {
+    constructor(contentTransformerPlugins = [], preProcessors = [], postProcessors = [], markdownParser = new UnifiedMarkdownParser()) {
         this._contentTransformerPlugins = contentTransformerPlugins;
         this._preProcessors = preProcessors;
+        this._postProcessors = postProcessors;
         this._markdownParser = markdownParser;
         this._documentArgs = {};
     }
@@ -23,7 +25,9 @@ export default class Transpiler {
             output += transpilationOutput;
             transpiledBlocks.push(new TranspiledBlock(block, transpilationOutput));
         });
-        if (documentTransformerPlugin) return documentTransformerPlugin.transform(transpiledBlocks, this._documentArgs);
+        const postProcessedBlocks = this.postProcess(transpiledBlocks);
+        // deepLog(postProcessedBlocks);
+        if (documentTransformerPlugin) return documentTransformerPlugin.transform(postProcessedBlocks, this._documentArgs);
         return output;
     }
 
@@ -81,6 +85,12 @@ export default class Transpiler {
         });
         return output;
     }
+
+    postProcess(blocks) {
+        let output = blocks;
+        this._postProcessors.forEach(processor => output = processor.transform(blocks));
+        return output;
+    }
 }
 
 export class TranspilerError extends Error {
@@ -100,4 +110,5 @@ export class TranspiledBlock {
 
     get srcBlock() { return this._srcBlock; }
     get value() { return this._value; }
+    set value(val) { this._value = val; }
 }
