@@ -6,6 +6,15 @@ import Tokeniser from "./src/Tokeniser.js";
 import Token from "./src/Token.js";
 import Transpiler from "./src/Transpiler.js";
 import types from "./src/utils/types.js";
+import DocumentTransformerPlugin from "./src/plugins/DocumentTransformerPlugin.js";
+import ContentTransformerPlugin from "./src/plugins/ContentTransformerPlugin.js";
+import PreProcessingContentPlugin from "./src/plugins/PreProcessingContentPlugin.js";
+import DocumentArgumentsTransformer from "./src/plugins/built_in/DocumentArgumentsTransformer.js";
+import HtmlDocumentTransformer from "./src/plugins/built_in/HtmlDocumentTransformer.js";
+import JSTransformer from "./src/plugins/built_in/JSTransformer.js";
+import LiteralTransformer from "./src/plugins/built_in/LiteralTransformer.js";
+import TemplatePreProcessor from "./src/plugins/built_in/TemplatePreProcessor.js";
+import WeaveTemplatePlugin from "./src/plugins/built_in/WeaveTemplatePlugin.js";
 
 export * from './src/Parser.js';
 export * from './src/Token.js';
@@ -14,7 +23,12 @@ export * from './src/Transpiler.js';
 export * from './src/app/EmddSiteGenerator.js';
 export * from './src/utils/file.js';
 export * from './src/utils/logging.js';
-export { Parser, Token, Tokeniser, Transpiler, EmddSiteGenerator, types };
+export { 
+    Parser, Token, Tokeniser, Transpiler, EmddSiteGenerator, types,
+    DocumentTransformerPlugin, ContentTransformerPlugin, PreProcessingContentPlugin,
+    DocumentArgumentsTransformer, HtmlDocumentTransformer, JSTransformer, LiteralTransformer,
+    TemplatePreProcessor, WeaveTemplatePlugin 
+};
 
 class CommandArgumentError extends Error {
     constructor(message) {

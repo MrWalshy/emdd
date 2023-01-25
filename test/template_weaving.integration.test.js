@@ -1,6 +1,7 @@
 import Parser from "../src/Parser.js";
 import Tokeniser from "../src/Tokeniser.js";
-import Transpiler, { JSTransformer, TemplatePreProcessor, WeaveTemplatePlugin } from "../src/Transpiler.js";
+import Transpiler from "../src/Transpiler.js";
+import { JSTransformer, TemplatePreProcessor, WeaveTemplatePlugin } from "../emdd.js";
 
 describe("INTEGRATION TEST: Template weaving, literal type", () => {
     let transpiler;
