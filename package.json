@@ -8,6 +8,8 @@
   "scripts": {
     "start": "node ./emdd.js",
     "deploy": "npm publish",
+    "build:site": "npm start -- site --config=./documentation/site_config.json",
+    "deploy:site": "npm run build:site&& git subtree push --prefix documentation/build origin gh-pages",
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest --coverage",
     "test:watch": "npm run test -- --watchAll --verbose",
     "mess": "node ./examples/mess.js"

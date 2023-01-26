@@ -7,7 +7,7 @@
 @weave(name="page_header")
 ```
 "title": "Extensible Markdown (.emdd)", 
-"lead": "A format for writing web documents, somewhere in-between Markdown and your typical HTML, CSS and JS." 
+"lead": "A format for writing web documents, somewhere in-between Markdown and your typical HTML, CSS and JS..." 
 ```
 
 Extensible Markdown Documents (emdd) is an extension to Markdown for writing web documents, which can then be transpiled with the use of plugins to your desired output, or lack of. This allows Markdown to remain relatively as normal while also promoting extensibility. By default, `md` files will have their Markdown content parsed and output as HTML. Blocks annotated with an `@` specifier will be processed via pre-processing and content processing plugins where supported.
