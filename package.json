@@ -9,7 +9,7 @@
     "start": "node ./emdd.js",
     "deploy": "npm publish",
     "build:site": "npm start -- site --config=./documentation/site_config.json",
-    "deploy:site": "npm run build:site&& git subtree push --prefix documentation/build origin gh-pages",
+    "deploy:site": "npm run build:site&& gh-pages -d documentation/build",
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest --coverage",
     "test:watch": "npm run test -- --watchAll --verbose",
     "mess": "node ./examples/mess.js"
@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "@types/jest": "^29.2.6",
+    "gh-pages": "^5.0.0",
     "jest": "^29.3.1"
   }
 }

@@ -1,7 +1,7 @@
 @docArgs()
 ```
 "title": "EMDD | Home", 
-"links": ["/style.css"]
+"links": ["/emdd/style.css"]
 ```
 
 @weave(name="page_header")
