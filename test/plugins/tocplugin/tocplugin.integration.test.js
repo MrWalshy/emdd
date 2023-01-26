@@ -81,3 +81,32 @@ describe("INTEGRATION TEST: Inserting a Table of Contents", () => {
         expect(actual).toEqual(expected);
     });
 });
+
+describe("INTEGRATION TEST: It should indicate if the content processor is missing", () => {
+    let transpiler;
+
+    function transpile(src) {
+        const tokeniser = new Tokeniser(src, ["toc"]);
+        const parser = new Parser(tokeniser.tokenise());
+        const blocks = parser.parse();
+        return transpiler.transpile(blocks);
+    }
+
+    beforeEach(() => {
+        transpiler = new Transpiler([], [], [new HtmlTocPostProcessor()]);
+    });
+
+    it("Should insert a table of contents into the result", () => {
+        // Arrange
+        const md = `# My title
+
+@toc();
+
+## My secondary title
+`;
+        
+        // Act Assert
+        expect(() => transpile(md)).toThrowError("Error (5): Plugin not found for toc");
+    });
+
+});
