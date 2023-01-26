@@ -50,6 +50,23 @@ Inline plugins @js(value="
   let sum = 3 + 3; 
   return sum;
 "); should be supported.
+
+@template(name="data" args="username")
+\`\`\`
+<li>@username;</li>
+\`\`\`
+
+@js(name="dataSource" defer="true" value="return [{ username: 'bob' }, { username: 'sarah' }, { username: 'fred' }];");
+
+@lit()
+\`\`\`
+<ul>
+\`\`\`
+@weave(name="data" argsSource="dataSource");
+@lit()
+\`\`\`
+</ul>
+\`\`\`
 `;
 
 
@@ -60,9 +77,10 @@ const tokens = tokeniser.tokenise();
 const parser = new Parser(tokens);
 const blocks = parser.parse();
 // deepLog(blocks);
-const weaver = new WeaveProcessor();
+const context = {};
+const weaver = new WeaveProcessor(context);
 const templater = new TemplatePreProcessor(weaver);
-const contentTransformerPlugins = [new JSProcessor(), new LiteralProcessor(), new DocumentArgumentsProcessor(), new HtmlTocContentProcessor(), weaver];
+const contentTransformerPlugins = [new JSProcessor(context), new LiteralProcessor(), new DocumentArgumentsProcessor(), new HtmlTocContentProcessor(), weaver];
 const htmlDocumentTransformer = new HtmlDocumentProcessor();
 const transpiler = new Transpiler(contentTransformerPlugins, [templater], [new HtmlTocPostProcessor()]);
 // // deepLog(blocks);

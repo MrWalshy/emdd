@@ -4,10 +4,11 @@ import ContentProcessor from "./ContentProcessor.js";
 
 export default class JSProcessor extends ContentProcessor {
 
-    _context = {};
+    _context;
 
-    constructor() {
+    constructor(context = {}) {
         super("js")
+        this._context = context;
     }
 
     getArgs(parameters) {

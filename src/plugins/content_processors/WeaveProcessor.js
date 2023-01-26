@@ -3,10 +3,12 @@ import ContentProcessor from "./ContentProcessor.js";
 
 export default class WeaveProcessor extends ContentProcessor {
     _templates;
+    _context;
 
-    constructor() {
+    constructor(context = {}) {
         super("weave", ["name", "argsType"]);
         this._templates = {};
+        this._context = context;
     }
 
     transform(block) {
@@ -43,6 +45,14 @@ export default class WeaveProcessor extends ContentProcessor {
         const params = block.parameters.filter(param => param.name !== "name");
         for (const param of params) {
             weaveArgs[param.name] = param.value;
+        }
+        if (weaveArgs.argsSource) {
+            const fn = this._context[weaveArgs.argsSource];
+            if (!fn) throw new Error("Function with name '" + weaveArgs.argsSource + "' not found in WeaveProcessor context.");
+            const args = fn();
+            let output = [];
+            args.forEach(arg => output.push("\n" + "    " + this.weave(template, arg)));
+            return output.join("");
         }
         return this.weave(template, weaveArgs);
     }
