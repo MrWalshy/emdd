@@ -27,7 +27,7 @@ export default class HtmlTocPostProcessor extends PostProcessor {
         headings.forEach(heading => {
             output.push(`        <li class="${heading.identifier.lexeme}-toc">${heading.content}</li>`);
         });
-        output.push("    <ul>\n");
+        output.push("    </ul>\n");
         return output.join("\n");
     }
 

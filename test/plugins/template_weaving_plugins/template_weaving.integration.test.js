@@ -1,4 +1,4 @@
-import { JSProcessor, Parser, TemplatePreProcessor, Tokeniser, Transpiler, WeaveProcessor } from "../emdd.js";
+import { JSProcessor, Parser, TemplatePreProcessor, Tokeniser, Transpiler, WeaveProcessor } from "../../../emdd.js";
 
 describe("INTEGRATION TEST: Template weaving, literal type", () => {
     let transpiler;

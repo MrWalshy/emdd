@@ -29,16 +29,16 @@ export default class Transpiler {
      */
     transpile(blocks = [], documentProcessor) {
         const processedBlocks = this.preProcess(blocks);
-        let output = "";
         let transpiledBlocks = [];
         processedBlocks.forEach(block => {
             const transpilationOutput = this.transpileBlock(block)
-            output += transpilationOutput;
             transpiledBlocks.push(new TranspiledBlock(block, transpilationOutput));
         });
         const postProcessedBlocks = this.postProcess(transpiledBlocks);
         // deepLog(postProcessedBlocks);
         if (documentProcessor) return documentProcessor.transform(postProcessedBlocks, this._documentArgs);
+        let output = "";
+        postProcessedBlocks.forEach(block => output += block.value);
         return output;
     }
 

@@ -1,4 +1,4 @@
-import { JSProcessor, Parser, Tokeniser, Transpiler } from "../emdd.js";
+import { JSProcessor, Parser, Tokeniser, Transpiler } from "../../../emdd.js";
 
 describe("INTEGRATION TEST: Executing and transforming JavaScript to HTML", () => {
     let transpiler;
