@@ -1,4 +1,4 @@
-export default class DocumentTransformerPlugin {
+export default class DocumentProcessor {
     /**
      * Transforms the given content into a document such as React component or HTML document.
      * @param {*} content 

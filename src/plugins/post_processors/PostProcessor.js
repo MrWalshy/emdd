@@ -1,4 +1,4 @@
-import { TranspiledBlock } from "../Transpiler.js";
+import { TranspiledBlock } from "../../Transpiler.js";
 
 export default class PostProcessor {
 

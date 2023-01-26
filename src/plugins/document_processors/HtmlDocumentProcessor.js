@@ -1,7 +1,6 @@
-import { BlockType } from "../../Parser.js";
-import DocumentTransformerPlugin from "../DocumentTransformerPlugin.js";
+import DocumentProcessor from "./DocumentProcessor.js";
 
-export default class HtmlDocumentTransformer extends DocumentTransformerPlugin {
+export default class HtmlDocumentProcessor extends DocumentProcessor {
     _preamble;
     _postamble;
 

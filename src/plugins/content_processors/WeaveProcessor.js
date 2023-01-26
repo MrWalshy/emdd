@@ -1,7 +1,7 @@
 import { BlockType } from "../../Parser.js";
-import ContentTransformerPlugin from "../ContentTransformerPlugin.js";
+import ContentProcessor from "./ContentProcessor.js";
 
-export default class WeaveTemplatePlugin extends ContentTransformerPlugin {
+export default class WeaveProcessor extends ContentProcessor {
     _templates;
 
     constructor() {

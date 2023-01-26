@@ -1,6 +1,6 @@
-import PreProcessingContentPlugin from "../PreProcessingContentPlugin.js";
+import PreProcessor from "./PreProcessor.js";
 
-export default class TemplatePreProcessor extends PreProcessingContentPlugin {
+export default class TemplatePreProcessor extends PreProcessor {
     _weaver;
 
     /**

@@ -1,20 +1,16 @@
-export default class ContentTransformerPlugin {
+export default class ContentProcessor {
     _name;
     _parameters;
-    _preProcess;
 
-    constructor(name = "", parameters = [], preProcess = false) {
+    constructor(name = "", parameters = []) {
         this._name = name;
         this._parameters = parameters;
-        this._preProcess = preProcess;
     }
 
     get name() { return this._name; }
     set name(name) { this._name = name; }
     get parameters() { return this._parameters; }
     set parameters(parameters) { this._parameters = parameters; }
-
-    isPreProcessor() { return this._preProcess; }
 
     /**
      * Parses the given block, returning a string.

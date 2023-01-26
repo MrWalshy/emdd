@@ -1,6 +1,4 @@
-import Parser from "../src/Parser.js";
-import Tokeniser from "../src/Tokeniser.js";
-import Transpiler from "../src/Transpiler.js";
+import { Parser, Tokeniser, Transpiler } from "../emdd.js";
 
 describe("INTEGRATION TEST: No plugins, Markdown parsing", () => {
     let transpiler;

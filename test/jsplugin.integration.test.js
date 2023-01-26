@@ -1,7 +1,4 @@
-import Parser from "../src/Parser.js";
-import Tokeniser from "../src/Tokeniser.js";
-import Transpiler from "../src/Transpiler.js";
-import { JSTransformer } from "../emdd.js";
+import { JSProcessor, Parser, Tokeniser, Transpiler } from "../emdd.js";
 
 describe("INTEGRATION TEST: Executing and transforming JavaScript to HTML", () => {
     let transpiler;
@@ -14,7 +11,7 @@ describe("INTEGRATION TEST: Executing and transforming JavaScript to HTML", () =
     }
 
     beforeEach(() => {
-        transpiler = new Transpiler([new JSTransformer()]);
+        transpiler = new Transpiler([new JSProcessor()]);
     });
 
     it("Should execute and transpile a block of JavaScript to its result", () => {

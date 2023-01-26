@@ -1,8 +1,8 @@
 import { BlockType } from "../../Parser.js";
 import { TranspilerError } from "../../Transpiler.js";
-import ContentTransformerPlugin from "../ContentTransformerPlugin.js";
+import ContentProcessor from "./ContentProcessor.js";
 
-export default class JSTransformer extends ContentTransformerPlugin {
+export default class JSProcessor extends ContentProcessor {
 
     _context = {};
 

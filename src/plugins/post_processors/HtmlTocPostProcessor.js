@@ -1,10 +1,8 @@
-import { Block, BlockType } from "../../../Parser.js";
-import Token, { TokenType } from "../../../Token.js";
-import Tokeniser from "../../../Tokeniser.js";
-import { deepLog } from "../../../utils/logging.js";
-import PostProcessor from "../../PostProcessor.js";
+import Token, { TokenType } from "../../Token.js";
+import Tokeniser from "../../Tokeniser.js";
+import PostProcessor from "./PostProcessor.js";
 
-export default class HtmlTocProcessor extends PostProcessor {
+export default class HtmlTocPostProcessor extends PostProcessor {
     
     transform(blocks) {
         try {

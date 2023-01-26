@@ -6,18 +6,18 @@ import Tokeniser from "./src/Tokeniser.js";
 import Token from "./src/Token.js";
 import Transpiler from "./src/Transpiler.js";
 import types from "./src/utils/types.js";
-import DocumentTransformerPlugin from "./src/plugins/DocumentTransformerPlugin.js";
-import ContentTransformerPlugin from "./src/plugins/ContentTransformerPlugin.js";
-import PreProcessingContentPlugin from "./src/plugins/PreProcessingContentPlugin.js";
-import PostProcessor from "./src/plugins/PostProcessor.js";
-import DocumentArgumentsTransformer from "./src/plugins/built_in/DocumentArgumentsTransformer.js";
-import HtmlDocumentTransformer from "./src/plugins/built_in/HtmlDocumentTransformer.js";
-import JSTransformer from "./src/plugins/built_in/JSTransformer.js";
-import LiteralTransformer from "./src/plugins/built_in/LiteralTransformer.js";
-import TemplatePreProcessor from "./src/plugins/built_in/TemplatePreProcessor.js";
-import WeaveTemplatePlugin from "./src/plugins/built_in/WeaveTemplatePlugin.js";
-import HtmlTocContentProcessor from "./src/plugins/built_in/content_processors/HtmlTocContentProcessor.js";
-import HtmlTocProcessor from "./src/plugins/built_in/post_processors/HtmlTocProcessor.js";
+import DocumentProcessor from "./src/plugins/document_processors/DocumentProcessor.js";
+import ContentProcessor from "./src/plugins/content_processors/ContentProcessor.js";
+import PreProcessor from "./src/plugins/pre_processors/PreProcessor.js";
+import PostProcessor from "./src/plugins/post_processors/PostProcessor.js";
+import DocumentArgumentsProcessor from "./src/plugins/content_processors/DocumentArgumentsProcessor.js";
+import HtmlDocumentProcessor from "./src/plugins/document_processors/HtmlDocumentProcessor.js";
+import JSProcessor from "./src/plugins/content_processors/JSProcessor.js";
+import LiteralProcessor from "./src/plugins/content_processors/LiteralProcessor.js";
+import TemplatePreProcessor from "./src/plugins/pre_processors/TemplatePreProcessor.js";
+import WeaveProcessor from "./src/plugins/content_processors/WeaveProcessor.js";
+import HtmlTocContentProcessor from "./src/plugins/content_processors/HtmlTocContentProcessor.js";
+import HtmlTocPostProcessor from "./src/plugins/post_processors/HtmlTocPostProcessor.js";
 
 export * from './src/Parser.js';
 export * from './src/Token.js';
@@ -28,10 +28,10 @@ export * from './src/utils/file.js';
 export * from './src/utils/logging.js';
 export { 
     Parser, Token, Tokeniser, Transpiler, EmddSiteGenerator, types,
-    DocumentTransformerPlugin, ContentTransformerPlugin, PreProcessingContentPlugin, PostProcessor,
-    DocumentArgumentsTransformer, HtmlDocumentTransformer, JSTransformer, LiteralTransformer,
-    TemplatePreProcessor, WeaveTemplatePlugin,
-    HtmlTocContentProcessor, HtmlTocProcessor
+    DocumentProcessor, ContentProcessor, PreProcessor, PostProcessor,
+    DocumentArgumentsProcessor, HtmlDocumentProcessor, JSProcessor, LiteralProcessor,
+    TemplatePreProcessor, WeaveProcessor,
+    HtmlTocContentProcessor, HtmlTocPostProcessor
 };
 
 class CommandArgumentError extends Error {

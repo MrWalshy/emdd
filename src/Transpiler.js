@@ -44,19 +44,6 @@ export default class Transpiler {
     }
 
     transpileMarkdown(block) {
-        // transpile each block, there might be nested inline plugin(s)
-        // let output = [];
-        // block.value.forEach(child => {
-        //     output.push({ type: child.type, value: this.transpileBlock(child) });
-        // });
-        // // only parse the markdown
-        // // - inline plugins have already been transpiled and content is ready
-        // const parsedOutput = [];
-        // for (const target of output) {
-        //     if (target.type === BlockType.INLINE_PLUGIN) parsedOutput.push(target.value);
-        //     else parsedOutput.push(this._markdownParser.parse(target.value));
-        // }
-        // return parsedOutput.join("");
         let output = "";
         block.value.forEach(child => output += this.transpileBlock(child));
         return this._markdownParser.parse(output);

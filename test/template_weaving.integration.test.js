@@ -1,7 +1,4 @@
-import Parser from "../src/Parser.js";
-import Tokeniser from "../src/Tokeniser.js";
-import Transpiler from "../src/Transpiler.js";
-import { JSTransformer, TemplatePreProcessor, WeaveTemplatePlugin } from "../emdd.js";
+import { JSProcessor, Parser, TemplatePreProcessor, Tokeniser, Transpiler, WeaveProcessor } from "../emdd.js";
 
 describe("INTEGRATION TEST: Template weaving, literal type", () => {
     let transpiler;
@@ -14,9 +11,9 @@ describe("INTEGRATION TEST: Template weaving, literal type", () => {
     }
 
     beforeEach(() => {
-        const weaver = new WeaveTemplatePlugin();
+        const weaver = new WeaveProcessor();
         const templater = new TemplatePreProcessor(weaver);
-        transpiler = new Transpiler([new JSTransformer(), weaver], [templater]);
+        transpiler = new Transpiler([new JSProcessor(), weaver], [templater]);
     });
 
     it("Should insert a block @template on command with block @weave", () => {

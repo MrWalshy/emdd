@@ -1,9 +1,9 @@
-import ContentTransformerPlugin from "../ContentTransformerPlugin.js";
+import ContentProcessor from "./ContentProcessor.js";
 
 /**
 * Internal plugin for passing arguments from a document to a DocTypePlugin's transform method.
 */
-export default class DocumentArgumentsTransformer extends ContentTransformerPlugin {
+export default class DocumentArgumentsProcessor extends ContentProcessor {
     constructor() {
         super("docArgs");
     }
