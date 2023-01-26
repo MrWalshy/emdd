@@ -1,5 +1,6 @@
 import Token, { TokenType } from "../../Token.js";
 import Tokeniser from "../../Tokeniser.js";
+import { deepLog } from "../../utils/logging.js";
 import PostProcessor from "./PostProcessor.js";
 
 export default class HtmlTocPostProcessor extends PostProcessor {
@@ -8,11 +9,15 @@ export default class HtmlTocPostProcessor extends PostProcessor {
         try {
             let tocBlockIndex = blocks.findIndex(block => block.srcBlock.identifier === "toc");
             if (tocBlockIndex === -1) return blocks;
-            const headings = this.identifyHeadings(blocks);
-            const html = this.toHtml(headings);
+            let headings = this.identifyHeadings(blocks);
 
             while (tocBlockIndex != -1) {
-                blocks[tocBlockIndex].value = html;
+                let headingsToAdd = headings;
+                const param = blocks[tocBlockIndex].srcBlock.parameters.find(p => p.name === "exclude");
+                if (param) param.value.split(" ").forEach(value => {
+                    headingsToAdd = headingsToAdd.filter(h => h.identifier.lexeme !== value);
+                });
+                blocks[tocBlockIndex].value = this.toHtml(headingsToAdd);
                 tocBlockIndex = blocks.findIndex(block => block.srcBlock.identifier  === "toc" && block.value === "");
             }
             return blocks;
