@@ -256,7 +256,7 @@ export default class Parser {
      * Returns the next token if the token type is as expected, otherwise throws a parser error.
      * 
      * @param {TokenType} tokenType 
-     * @param {string} message 
+     * @param {String} message 
      * @returns {Token}
      * @throws {ParserError} Argument 'tokenType' must match the next tokens type
      */
