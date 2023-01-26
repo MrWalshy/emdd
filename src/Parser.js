@@ -19,6 +19,10 @@ export default class Parser {
         this._current = 0;
     }
 
+    /**
+     * Triggers the parsing process, transforming tokens into blocks.
+     * @returns {Block[]}
+     */
     parse() {
         const blocks = [];
 
@@ -26,6 +30,10 @@ export default class Parser {
         return blocks;
     }
 
+    /**
+     * Returns a parsed sequence of tokens as a block.
+     * @returns {Block}
+     */
     block() {
         const start = this._current;
         try {
@@ -41,6 +49,10 @@ export default class Parser {
         }
     }
 
+    /**
+     * Returns a block value representing the body of a content processor.
+     * @returns {Block}
+     */
     atBlockBody() {
         this.consumeCount(TokenType.BACK_TICK, 3, "Expected '```' to signal start of plugin body");
         while (this.peek().lexeme === " ") this.advance();
@@ -68,6 +80,10 @@ export default class Parser {
         return new Block(BlockType.VALUE, null, null, value);
     }
 
+    /**
+     * Returns a list of parameters.
+     * @returns {Parameter[]}
+     */
     parameters() {
         while (this.peek().lexeme === " ") this.advance();
         this.consume(TokenType.LEFT_PAREN, "Expected '(' after identifier.");
@@ -86,6 +102,10 @@ export default class Parser {
         return parameters; // SUCCESS :O
     }
 
+    /**
+     * Returns a single parsed parameter, including both name and value.
+     * @returns {Parameter}
+     */
     parameter() {
         const parameter = {
             name: "",
@@ -115,10 +135,19 @@ export default class Parser {
         return new Parameter(parameter.name, parameter.value);
     }
 
+    /**
+     * Throws a ParserError should the name not match: ^[a-zA-Z_]*$
+     * @param {string} name 
+     * @throws {ParserError}
+     */
     validateParameterName(name) {
         if (!name.match("^[a-zA-Z_]*$")) throw new ParserError("Invalid parameter name '" + name + "'", this.previous());
     }
 
+    /**
+     * Returns a block representing a processor plugin.
+     * @returns {Block}
+     */
     plugin() {
         // const type = !this.previous() || this.previous().tokenType === TokenType.NEWLINE ? BlockType.PLUGIN : BlockType.INLINE_PLUGIN;
         let type;
@@ -143,6 +172,11 @@ export default class Parser {
         return new Block(type, identifier.lexeme, parameters, blockBody);
     }
 
+    /**
+     * Returns a Markdown block.
+     * @param {ParserError} parserError 
+     * @returns {Block}
+     */
     markdown(parserError) {
         const valueArray = [];
         let value = "";
