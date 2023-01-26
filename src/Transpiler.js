@@ -76,8 +76,7 @@ export default class Transpiler {
     transpilePlugin(block) {
         const plugin = this._contentProcessors.find(plugin => plugin.name === block.identifier);
         if (!plugin) {
-            deepLog(block)
-            throw new TranspilerError(`Error (5): Plugin not found for ${block._identifier}`);
+            throw new TranspilerError(`Error (5): Content processor not found for ${block._identifier}`);
         }
         if (plugin.name === "docArgs") {
             this._documentArgs = plugin.transform(block);

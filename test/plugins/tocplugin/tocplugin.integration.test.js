@@ -82,7 +82,7 @@ describe("INTEGRATION TEST: Inserting a Table of Contents", () => {
     });
 });
 
-describe("INTEGRATION TEST: It should indicate if the content processor is missing", () => {
+describe("INTEGRATION TEST: Erroeneous TOC conditions", () => {
     let transpiler;
 
     function transpile(src) {
@@ -96,7 +96,7 @@ describe("INTEGRATION TEST: It should indicate if the content processor is missi
         transpiler = new Transpiler([], [], [new HtmlTocPostProcessor()]);
     });
 
-    it("Should insert a table of contents into the result", () => {
+    it("Should throw an error indicating a missing content processor", () => {
         // Arrange
         const md = `# My title
 
@@ -106,7 +106,7 @@ describe("INTEGRATION TEST: It should indicate if the content processor is missi
 `;
         
         // Act Assert
-        expect(() => transpile(md)).toThrowError("Error (5): Plugin not found for toc");
+        expect(() => transpile(md)).toThrowError("Error (5): Content processor not found for toc");
     });
 
 });
