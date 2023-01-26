@@ -56,4 +56,28 @@ describe("INTEGRATION TEST: Inserting a Table of Contents", () => {
         // Assert
         expect(actual).toEqual(expected);
     });
+
+    it("Should not insert multiple specified exclusions", () => {
+        // Arrange
+        const md = `# My title
+
+@toc(exclude="h1 h3");
+
+## My secondary title
+
+### My third title
+`;
+        const expected = `<h1>My title</h1>
+    <ul class="toc">
+        <li class="h2-toc">My secondary title</li>
+    </ul>
+<h2>My secondary title</h2>
+<h3>My third title</h3>`;
+        
+        // Act
+        const actual = transpile(md);
+
+        // Assert
+        expect(actual).toEqual(expected);
+    });
 });
