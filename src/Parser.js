@@ -6,7 +6,7 @@ import rehypeFormat from 'rehype-format';
 import remarkGfm from 'remark-gfm';
 // import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
-import { TokenType } from './Token.js';
+import Token, { TokenType } from './Token.js';
 import { deepLog, logTitleBlock } from './utils/logging.js';
 
 export default class Parser {
@@ -149,7 +149,6 @@ export default class Parser {
      * @returns {Block}
      */
     plugin() {
-        // const type = !this.previous() || this.previous().tokenType === TokenType.NEWLINE ? BlockType.PLUGIN : BlockType.INLINE_PLUGIN;
         let type;
         if (!this.previous() || this.previous().tokenType === TokenType.NEWLINE) type = BlockType.PLUGIN;
         else type = BlockType.INLINE_PLUGIN;
@@ -158,8 +157,6 @@ export default class Parser {
         const parameters = this.parameters();
 
         if (this.check(TokenType.SEMI_COLON)) type = BlockType.INLINE_PLUGIN;
-        // console.log("HERE")
-        // deepLog(this.peek())
         if (type === BlockType.INLINE_PLUGIN) {
             this.consume(TokenType.SEMI_COLON, "Expected ';' after inline plugin arguments. Usage: @<IDENTIFIER>(<ARG1=\"VALUE\"> <...>);");
             return new Block(type, identifier.lexeme, parameters, []);
@@ -186,61 +183,105 @@ export default class Parser {
         }
         while(!this.isAtEnd() && (!this.check(TokenType.AT) || !this.checkAhead(TokenType.PLUGIN_IDENTIFIER, 1))) {
             // if current token is not a newline, next token is @ and token after is identifier
-            // - add current tokens value to value
-            // - add current value to value array
-            // - reset value
-            // - add inline child to value array
-            // else
-            // - append to value
             if (!this.check(TokenType.NEWLINE) && this.checkAhead(TokenType.AT, 1) && this.checkAhead(TokenType.PLUGIN_IDENTIFIER, 2)) {
-                value += this.advance().lexeme;
-                valueArray.push(new Block(BlockType.VALUE, null, null, value));
-                value = "";
-                valueArray.push(this.block());
-            } else value += this.advance().lexeme;
+                value += this.advance().lexeme; // - add current tokens value to value
+                valueArray.push(new Block(BlockType.VALUE, null, null, value)); // - add current value to value array
+                value = ""; // - reset value
+                valueArray.push(this.block()); // - add inline child to value array
+            } else value += this.advance().lexeme; // else - append to value
         }
         if (value.length > 0) valueArray.push(new Block(BlockType.VALUE, null, null, value));
         return new Block(BlockType.MARKDOWN, null, null, valueArray);
     }
 
+    /**
+     * Returns true if the pointer to the token buffer has reached the end of the buffer.
+     * - this should be signified by the `EOF` token type
+     * @returns {boolean}
+     */
     isAtEnd() {
         return this.peek().tokenType.type === "EOF" || this._current >= this._tokens.length - 1;
     }
 
+    /**
+     * Returns the current token without incrementing the current token pointer.
+     * @returns {Token}
+     */
     peek() {
         return this._tokens[this._current];
     }
 
+    /**
+     * Returns the next token, incrementing the current pointer if not at the end of the token buffer already.
+     * @returns {Token}
+     */
     advance() {
         if (!this.isAtEnd()) this._current++;
         return this.previous();
     }
 
+    /**
+     * Returns null if at the start of the token stream, otherwise returns the last token.
+     * @returns {Token | null}
+     */
     previous() {
         if (this._current == 0) return null;
         return this._tokens[this._current - 1];
     }
 
+    /**
+     * Returns true if the next tokens type matches the given token type, otherwise returns 
+     * false.
+     * @param {TokenType} tokenType 
+     * @returns {boolean}
+     */
     check(tokenType) {
         if (this.isAtEnd()) return false;
         return this.peek().tokenType === tokenType;
     }
 
+    /**
+     * Returns true if the tokens type that is 'count' ahead of the current token matches, else
+     * returns false.
+     * @param {TokenType} tokenType 
+     * @param {number} count 
+     * @returns {boolean}
+     */
     checkAhead(tokenType, count) {
         if (this.isAtEnd()) return false;
         return this._tokens[this._current + count]._tokenType === tokenType;
     }
 
+    /**
+     * Returns the next token if the token type is as expected, otherwise throws a parser error.
+     * 
+     * @param {TokenType} tokenType 
+     * @param {string} message 
+     * @returns {Token}
+     * @throws {ParserError} Argument 'tokenType' must match the next tokens type
+     */
     consume(tokenType, message) {
         if (this.check(tokenType)) return this.advance();
         throw new ParserError(message, this.peek());
     }
 
+    /**
+     * Trys to consume the given token type 'count' times, throwing a parser error should 
+     * any token not match the given type.
+     * 
+     * @param {TokenType} tokenType 
+     * @param {number} count 
+     * @param {string} message 
+     * @throws {ParserError} Argument 'tokenType' must match the next 'count' of tokens
+     */
     consumeCount(tokenType, count, message) {
         for (let i = 0; i < count; i++) this.consume(tokenType, message);
     }
 }
 
+/**
+ * Represents a key=value pair where the key is the name of the parameter and the value is its argument.
+ */
 export class Parameter {
     _name;
     _value;
@@ -250,10 +291,24 @@ export class Parameter {
         this._value = value;
     }
 
+    /**
+     * The name of the parameter.
+     * 
+     * @type {string}
+     */
     get name() { return this._name; }
+
+    /**
+     * The argument to the parameter.
+     * 
+     * @type {string}
+     */
     get value() { return this._value; }
 }
 
+/**
+ * Represents a parsed sequence of tokens.
+ */
 export class Block {
     _type;
     _identifier;
@@ -267,9 +322,32 @@ export class Block {
         this._value = value;
     }
 
+    /**
+     * Returns the type of the block.
+     * 
+     * @type {BlockType}
+     */
     get type() { return this._type; }
+
+    /**
+     * Returns the identifier of the block.
+     * 
+     * @type {string}
+     */
     get identifier() { return this._identifier; }
+
+    /**
+     * Returns an array of parameters belonging to the block.
+     * 
+     * @type {Parameter[]}
+     */
     get parameters() { return this._parameters; }
+
+    /**
+     * Returns the value of the block.
+     * 
+     * @type {Block[]}
+     */
     get value() { return this._value; }
 }
 
@@ -288,12 +366,26 @@ export const BlockType = {
     }
 }
 
+/**
+ * Used to represent a markdown parser in the transpiler.
+ */
 export class MarkdownParser {
+
+    /**
+     * Given a source string of Markdown, returns the transpiled markdown content.
+     * 
+     * @param {string} src 
+     * @returns {string}
+     * @throws {UnimplementedError} 'parse' must be implemented
+     */
     parse(src) {
         throw new UnimplementedError();
     }
 }
 
+/**
+ * A @type {MarkdownParser} implementation which uses Unified as its backend.
+ */
 export class UnifiedMarkdownParser extends MarkdownParser {
     _parser;
 
