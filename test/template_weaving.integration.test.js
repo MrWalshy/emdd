@@ -89,4 +89,18 @@ describe("INTEGRATION TEST: Template weaving from data source", () => {
         // Assert
         expect(actual).toEqual(expected);
     });
+
+    it("Should throw an error if the data source function does not exist on the context", () => {
+        // Arrange
+        const template = `@template(name="data" args="username")
+\`\`\`
+<li>@username;</li>
+\`\`\``;
+        const md = `@weave(name="data" argsSource="dataSource");`;
+        
+        // Act and assert
+        transpile(template);
+        expect(() => transpile(md))
+            .toThrowError("Function with name 'dataSource' not found in WeaveProcessor context.");
+    });
 });
