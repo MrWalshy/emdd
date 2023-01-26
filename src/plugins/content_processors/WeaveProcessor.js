@@ -51,7 +51,7 @@ export default class WeaveProcessor extends ContentProcessor {
             if (!fn) throw new Error("Function with name '" + weaveArgs.argsSource + "' not found in WeaveProcessor context.");
             const args = fn();
             let output = [];
-            args.forEach(arg => output.push("\n" + "    " + this.weave(template, arg)));
+            args.forEach(arg => output.push(this.weave(template, arg)));
             return output.join("");
         }
         return this.weave(template, weaveArgs);

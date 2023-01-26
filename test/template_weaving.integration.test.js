@@ -53,3 +53,40 @@ describe("INTEGRATION TEST: Template weaving, literal type", () => {
         expect(actual).toEqual(expected);
     });
 });
+
+describe("INTEGRATION TEST: Template weaving from data source", () => {
+    let transpiler;
+
+    function transpile(src) {
+        const tokeniser = new Tokeniser(src, ["js", "weave", "template"]);
+        const parser = new Parser(tokeniser.tokenise());
+        const blocks = parser.parse();
+        return transpiler.transpile(blocks);
+    }
+
+    beforeEach(() => {
+        const context = {};
+        const weaver = new WeaveProcessor(context);
+        const templater = new TemplatePreProcessor(weaver);
+        transpiler = new Transpiler([new JSProcessor(context), weaver], [templater]);
+    });
+
+    it("Should insert a block weaved from a JS data source", () => {
+        // Arrange
+        const dataSource = `@js(name="dataSource" defer="true" value="return [{ username: 'bob' }, { username: 'sarah' }, { username: 'fred' }];");`;
+        const template = `@template(name="data" args="username")
+\`\`\`
+<li>@username;</li>
+\`\`\``;
+        const md = `@weave(name="data" argsSource="dataSource");`;
+        const expected = "<li>bob</li><li>sarah</li><li>fred</li>";
+        
+        // Act
+        transpile(dataSource);
+        transpile(template);
+        const actual = transpile(md);
+
+        // Assert
+        expect(actual).toEqual(expected);
+    });
+});
