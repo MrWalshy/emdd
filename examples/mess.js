@@ -1,11 +1,16 @@
-import {deepLog, TemplatePreProcessor, Tokeniser, WeaveTemplatePlugin} from "../emdd.js";
-import { Parser, BlockType, UnifiedMarkdownParser, UnimplementedError } from "../emdd.js";
-import { Transpiler, DocumentArgumentsTransformer, HtmlDocumentTransformer, JSTransformer, LiteralTransformer } from "../emdd.js";
+import { DocumentArgumentsProcessor, HtmlDocumentProcessor, HtmlTocPostProcessor, JSProcessor, LiteralProcessor, TemplatePreProcessor, Tokeniser, WeaveProcessor } from "../emdd.js";
+import { Parser } from "../emdd.js";
+import { Transpiler } from "../emdd.js";
+import HtmlTocContentProcessor from "../src/plugins/content_processors/HtmlTocContentProcessor.js";
 
 ///////// MAIN //////////
 const emdd = `# My title
 
+## My secondary title
+
 Some text
+
+@toc();
 
 @js()
 \`\`\`
@@ -45,20 +50,38 @@ Inline plugins @js(value="
   let sum = 3 + 3; 
   return sum;
 "); should be supported.
+
+@template(name="data" args="username")
+\`\`\`
+<li>@username;</li>
+\`\`\`
+
+@js(name="dataSource" defer="true" value="return [{ username: 'bob' }, { username: 'sarah' }, { username: 'fred' }];");
+
+@lit()
+\`\`\`
+<ul>
+\`\`\`
+@weave(name="data" argsSource="dataSource");
+@lit()
+\`\`\`
+</ul>
+\`\`\`
 `;
 
 
 
-const tokeniser = new Tokeniser(emdd, ["js", "lit", "docArgs", "template", "weave"]);
+const tokeniser = new Tokeniser(emdd, ["js", "lit", "docArgs", "template", "weave", "toc"]);
 const tokens = tokeniser.tokenise();
 // deepLog(tokens);
 const parser = new Parser(tokens);
 const blocks = parser.parse();
 // deepLog(blocks);
-const weaver = new WeaveTemplatePlugin();
+const context = {};
+const weaver = new WeaveProcessor(context);
 const templater = new TemplatePreProcessor(weaver);
-const contentTransformerPlugins = [new JSTransformer(), new LiteralTransformer(), new DocumentArgumentsTransformer(), weaver];
-const htmlDocumentTransformer = new HtmlDocumentTransformer();
-const transpiler = new Transpiler(contentTransformerPlugins, [templater]);
+const contentTransformerPlugins = [new JSProcessor(context), new LiteralProcessor(), new DocumentArgumentsProcessor(), new HtmlTocContentProcessor(), weaver];
+const htmlDocumentTransformer = new HtmlDocumentProcessor();
+const transpiler = new Transpiler(contentTransformerPlugins, [templater], [new HtmlTocPostProcessor()]);
 // // deepLog(blocks);
 console.log(transpiler.transpile(blocks, htmlDocumentTransformer));

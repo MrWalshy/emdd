@@ -1,15 +1,19 @@
 {
   "name": "emdd",
-  "version": "0.7.4",
+  "version": "0.8.0",
   "description": "",
   "main": "emdd.js",
   "type": "module",
   "homepage": "https://www.morganwalsh.dev/emdd_documentation_site/",
   "scripts": {
     "start": "node ./emdd.js",
-    "deploy": "npm publish",
+    "deploy": "npm test&& npm publish",
+    "start:site": "npm run build:site&& ws --directory ./documentation/build --rewrite \"/emdd -> /\" --rewrite \"/emdd/(.*) -> /$1\"",
+    "build:site": "npm start -- site --config=./documentation/site_config.json",
+    "deploy:site": "npm run build:site&& gh-pages -d documentation/build",
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest --coverage",
-    "test:watch": "npm run test -- --watchAll --verbose"
+    "test:watch": "npm run test -- --watchAll --verbose",
+    "mess": "node ./examples/mess.js"
   },
   "bin": {
     "emdd": "./emdd.js"
@@ -34,6 +38,8 @@
   },
   "devDependencies": {
     "@types/jest": "^29.2.6",
-    "jest": "^29.3.1"
+    "gh-pages": "^5.0.0",
+    "jest": "^29.3.1",
+    "local-web-server": "^5.2.1"
   }
 }

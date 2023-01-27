@@ -1,10 +1,10 @@
 import { readFileSync, writeFileSync, existsSync, cpSync, mkdirSync } from 'fs';
 import path from 'path';
+import { DocumentArgumentsProcessor, HtmlDocumentProcessor, JSProcessor, LiteralProcessor, TemplatePreProcessor, WeaveProcessor } from '../../emdd.js';
 import Parser from '../Parser.js';
 import Tokeniser from '../Tokeniser.js';
-import Transpiler, { DocumentArgumentsTransformer, HtmlDocumentTransformer, JSTransformer, LiteralTransformer, TemplatePreProcessor, WeaveTemplatePlugin } from '../Transpiler.js';
+import Transpiler from '../Transpiler.js';
 import { createDirectory, getPathsOfType } from "../utils/file.js";
-import { deepLog } from '../utils/logging.js';
 
 export default class EmddSiteGenerator {
     _weaver;
@@ -13,7 +13,7 @@ export default class EmddSiteGenerator {
     _postamble;
 
     constructor() {
-        this._weaver = new WeaveTemplatePlugin();
+        this._weaver = new WeaveProcessor();
         this._templateProcessor = new TemplatePreProcessor(this._weaver);
         this._preamble = "";
         this._postamble = "";
@@ -159,7 +159,7 @@ export default class EmddSiteGenerator {
         console.log("Acquiring document plugin of type: " + type);
         switch (type) {
             case "html5":
-                return new HtmlDocumentTransformer(this._preamble, this._postamble);
+                return new HtmlDocumentProcessor(this._preamble, this._postamble);
             default:
                 throw new SiteConfigurationError("(301): Invalid document type supplied");
         }
@@ -192,11 +192,11 @@ export default class EmddSiteGenerator {
         console.log("Acquiring content plugin of type: " + type);
         switch (type) {
             case "js":
-                return new JSTransformer();
+                return new JSProcessor();
             case "lit":
-                return new LiteralTransformer();
+                return new LiteralProcessor();
             case "docArgs":
-                return new DocumentArgumentsTransformer();
+                return new DocumentArgumentsProcessor();
             case "weave":
                 return this._weaver;
             default:

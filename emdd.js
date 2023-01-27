@@ -6,6 +6,18 @@ import Tokeniser from "./src/Tokeniser.js";
 import Token from "./src/Token.js";
 import Transpiler from "./src/Transpiler.js";
 import types from "./src/utils/types.js";
+import DocumentProcessor from "./src/plugins/document_processors/DocumentProcessor.js";
+import ContentProcessor from "./src/plugins/content_processors/ContentProcessor.js";
+import PreProcessor from "./src/plugins/pre_processors/PreProcessor.js";
+import PostProcessor from "./src/plugins/post_processors/PostProcessor.js";
+import DocumentArgumentsProcessor from "./src/plugins/content_processors/DocumentArgumentsProcessor.js";
+import HtmlDocumentProcessor from "./src/plugins/document_processors/HtmlDocumentProcessor.js";
+import JSProcessor from "./src/plugins/content_processors/JSProcessor.js";
+import LiteralProcessor from "./src/plugins/content_processors/LiteralProcessor.js";
+import TemplatePreProcessor from "./src/plugins/pre_processors/TemplatePreProcessor.js";
+import WeaveProcessor from "./src/plugins/content_processors/WeaveProcessor.js";
+import HtmlTocContentProcessor from "./src/plugins/content_processors/HtmlTocContentProcessor.js";
+import HtmlTocPostProcessor from "./src/plugins/post_processors/HtmlTocPostProcessor.js";
 
 export * from './src/Parser.js';
 export * from './src/Token.js';
@@ -14,7 +26,13 @@ export * from './src/Transpiler.js';
 export * from './src/app/EmddSiteGenerator.js';
 export * from './src/utils/file.js';
 export * from './src/utils/logging.js';
-export { Parser, Token, Tokeniser, Transpiler, EmddSiteGenerator, types };
+export { 
+    Parser, Token, Tokeniser, Transpiler, EmddSiteGenerator, types,
+    DocumentProcessor, ContentProcessor, PreProcessor, PostProcessor,
+    DocumentArgumentsProcessor, HtmlDocumentProcessor, JSProcessor, LiteralProcessor,
+    TemplatePreProcessor, WeaveProcessor,
+    HtmlTocContentProcessor, HtmlTocPostProcessor
+};
 
 class CommandArgumentError extends Error {
     constructor(message) {

@@ -1,5 +1,8 @@
 import Token, { TokenType } from './Token.js';
 
+/**
+ * Used to produce a flat array of tokens to be parsed into blocks.
+ */
 export default class Tokeniser {
     _src;
     _current;
@@ -19,6 +22,10 @@ export default class Tokeniser {
         this._linePosition = 1;
     }
 
+    /**
+     * Adds a new token to the internal token buffer.
+     * @param {Token} token 
+     */
     addToken(token) {
         token.line = this._line;
         token.linePosition = this._linePosition;
@@ -26,6 +33,10 @@ export default class Tokeniser {
         this._linePosition++;
     }
 
+    /**
+     * Triggers the tokenisation process, returning the flat array of tokens.
+     * @returns {Token[]}
+     */
     tokenise() {
         while (!this.isAtEnd()) {
             this._startOfLexeme = this._current;
@@ -35,6 +46,9 @@ export default class Tokeniser {
         return this._tokens;
     }
 
+    /**
+     * Scans the next token, adding it to the internal token buffer.
+     */
     scanToken() {
         let currentCharacter = this.next();
 
@@ -80,6 +94,7 @@ export default class Tokeniser {
 
     /**
      * Returns the next character in the internal src string buffer.
+     * @returns {string}
      */
      next() {
         return this._src[this._current++];
@@ -87,22 +102,35 @@ export default class Tokeniser {
 
     /**
      * Checks if the tokeniser has reached the end of the source stream
-     * @returns a boolean
+     * @returns {boolean}
      */
     isAtEnd() {
         if (this._current >= this._src.length) return true;
         else false;
     }
 
+    /**
+     * Checks if the given character is an alphabetical letter.
+     * @param {string} character 
+     * @returns {boolean}
+     */
     isAlpha(character="") {
         return character.match("([a-z]|[A-Z])");
     }
 
+    /**
+     * Returns the next character to be scanned in the buffer, without advancing the pointer past the character.
+     * @returns {string}
+     */
     peek() {
         if (this.isAtEnd()) return null;
         return this._src.charAt(this._current);
     }
 
+    /**
+     * Adds a plugin identifier to the token buffer, or a flat stream of characters if no identifier matches the given keywords.
+     * @param {string} current 
+     */
     pluginIdentifier(current) {
         // console.log("Made it")
         const characters = [new Token(TokenType.CHARACTER, current, this._line, this.line_position++)];
