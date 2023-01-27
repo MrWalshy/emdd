@@ -1,6 +1,6 @@
 {
   "name": "emdd",
-  "version": "0.7.4",
+  "version": "0.8.0",
   "description": "",
   "main": "emdd.js",
   "type": "module",
