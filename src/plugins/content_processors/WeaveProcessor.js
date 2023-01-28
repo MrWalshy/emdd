@@ -1,4 +1,5 @@
-import { BlockType } from "../../Parser.js";
+import { Block, BlockType } from "../../Parser.js";
+import { deepLog } from "../../utils/logging.js";
 import ContentProcessor from "./ContentProcessor.js";
 
 export default class WeaveProcessor extends ContentProcessor {
@@ -11,7 +12,24 @@ export default class WeaveProcessor extends ContentProcessor {
         this._context = context;
     }
 
-    transform(block) {
+    transform(blocks) {
+        let output = [];
+        this.loadTemplates(blocks);
+        for (const block of blocks) {
+            if (block.identifier === "weave") {
+                const weavedData = this.handleWeave(block);
+                output.push(new Block(block.type, block.identifier, block.parameters, block.value, weavedData));
+            } else output.push(block);
+        }
+        return output;
+    }
+
+    loadTemplates(blocks) {
+        const templates = blocks.filter(block => block.identifier === "template");
+        templates.forEach(template => this.addTemplate(template));
+    }
+
+    handleWeave(block) {
         const weaveNameParam = block.parameters.find(param => param.name === "name");
         if (!weaveNameParam) throw new Error("Template weave parameter 'name' not supplied");
         const template = this._templates[weaveNameParam.value];

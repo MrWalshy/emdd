@@ -9,9 +9,11 @@ export default class Transpiler {
     _contentProcessors;
     _documentArgs;
     _markdownParser;
+    _postProcessors;
 
-    constructor(contentProcessors = [], markdownParser = new UnifiedMarkdownParser()) {
+    constructor(contentProcessors = [], postProcessors = [], markdownParser = new UnifiedMarkdownParser()) {
         this._contentProcessors = contentProcessors;
+        this._postProcessors = postProcessors;
         this._markdownParser = markdownParser;
         this._documentArgs = {};
     }
@@ -31,9 +33,9 @@ export default class Transpiler {
         docArgs.forEach(block => Object.assign(this._documentArgs, JSON.parse("{" + block.value.value + "}")));
 
         // content (plugin) processing
-        let processedBlocks;
+        let processedBlocks = filteredBlocks;
         this._contentProcessors.forEach(processor => {
-            processedBlocks = processor.transform(filteredBlocks);
+            processedBlocks = processor.transform(processedBlocks);
         });
 
         // built-in markdown processing last, inline plugins included
@@ -47,9 +49,13 @@ export default class Transpiler {
             } else fullyProcessedBlocks.push(block);
         });
 
-        if (documentProcessor) return documentProcessor.transform(fullyProcessedBlocks, this._documentArgs);
+        // post processing
+        let postProcessedBlocks = fullyProcessedBlocks;
+        this._postProcessors.forEach(processor => postProcessedBlocks = processor.transform(postProcessedBlocks));
+
+        if (documentProcessor) return documentProcessor.transform(postProcessedBlocks, this._documentArgs);
         let output = "";
-        processedBlocks.forEach(block => output += block.value);
+        postProcessedBlocks.forEach(block => output += block.outputValue);
         return output;
     }
 

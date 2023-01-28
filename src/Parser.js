@@ -316,7 +316,7 @@ export class Block {
     _value;
     _outputValue;
 
-    constructor(type, identifier, parameters, value, outputValue) {
+    constructor(type, identifier, parameters, value, outputValue = "") {
         this._type = type;
         this._identifier = identifier;
         this._parameters = parameters;
