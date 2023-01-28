@@ -1,4 +1,4 @@
-import { BlockType } from "../../Parser.js";
+import { Block, BlockType } from "../../Parser.js";
 import { TranspilerError } from "../../Transpiler.js";
 import ContentProcessor from "./ContentProcessor.js";
 
@@ -17,10 +17,19 @@ export default class JSProcessor extends ContentProcessor {
         return args;
     }
 
-    transform(block) {
-        const args = this.getArgs(block.parameters);
-        if (block.type === BlockType .INLINE_PLUGIN) return this.transformInline(args);
-        return this.transformBlock(block, args);
+    transform(blocks) {
+        let processed = [];
+        
+        for (const block of blocks) {
+            if (block.identifier === "js") {
+                const args = this.getArgs(block.parameters);
+                let blockOutput = "";
+                if (block.type === BlockType .INLINE_PLUGIN) blockOutput = this.transformInline(args);
+                else blockOutput = this.transformBlock(block, args);
+                processed.push(new Block(block.type, block.identifier, block.parameters, block.value, blockOutput));
+            } else processed.push(block);
+        }
+        return processed;
     }
 
     transformBlock(block, args) {

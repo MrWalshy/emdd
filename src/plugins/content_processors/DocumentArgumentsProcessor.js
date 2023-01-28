@@ -8,9 +8,13 @@ export default class DocumentArgumentsProcessor extends ContentProcessor {
         super("docArgs");
     }
  
-    transform(block) {
+    transform(blocks) {
         try {
-            return JSON.parse("{" + block.value.value + "}");
+            let args = {};
+            for (const block of blocks) {
+                Object.assign(args, JSON.parse("{" + block.value + "}"));
+            }
+            return args;
         } catch (e) {
             console.warn(e);
             return {};

@@ -314,12 +314,14 @@ export class Block {
     _identifier;
     _parameters;
     _value;
+    _outputValue;
 
-    constructor(type, identifier, parameters, value) {
+    constructor(type, identifier, parameters, value, outputValue) {
         this._type = type;
         this._identifier = identifier;
         this._parameters = parameters;
         this._value = value;
+        this._outputValue = outputValue;
     }
 
     /**
@@ -349,6 +351,8 @@ export class Block {
      * @type {Block[]}
      */
     get value() { return this._value; }
+
+    get outputValue() { return this._outputValue; }
 }
 
 export const BlockType = {
