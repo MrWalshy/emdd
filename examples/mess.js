@@ -1,7 +1,7 @@
 import { DocumentArgumentsProcessor, HtmlDocumentProcessor, HtmlTocPostProcessor, JSProcessor, LiteralProcessor, TemplatePreProcessor, Tokeniser, WeaveProcessor } from "../emdd.js";
 import { Parser } from "../emdd.js";
 import { Transpiler } from "../emdd.js";
-import { FileContentProcessor, FilePostProcessor, FragmentContentProcessor } from "../src/app/LiterateProgram.js";
+import { FileContentProcessor, FilePostProcessor, FragmentContentProcessor } from "../emdd.js";
 import HtmlTocContentProcessor from "../src/plugins/content_processors/HtmlTocContentProcessor.js";
 
 ///////// MAIN //////////
@@ -72,7 +72,7 @@ Inline plugins @js(value="
 @file(name="test.js" dir="src" id="testjs");
 
 My program will take a string of space-delimited numbers from the console and add them together,
-this will require reading from a line.
+this will require reading from the console.
 
 @fragment(type="structure" file="testjs")
 \`\`\`
@@ -82,7 +82,7 @@ this will require reading from a line.
 <<READ_ADD_OUTPUT>>
 \`\`\`
 
-This will require importing \`readline\`:
+This will first require importing \`readline\`:
 
 @fragment(file="testjs" name="IMPORTS")
 \`\`\`
@@ -106,9 +106,11 @@ Then I will need to get the input of numbers from the user:
 rl.question("Please enter numbers separated by a space to add together: ", <<ANSWER>>);
 \`\`\`
 
-Once I have those numbers, they will need to be added together and output to the console:
+Once I have those numbers, they will need to be added together and output to the console. Also 
+make sure to close the reader in your callback.
 
-@fragment(file="testjs" name="ANSWER")
+
+@fragment(file="testjs" name="ANSWER" echo="off")
 \`\`\`
 (numbers) => {
   rl.close();

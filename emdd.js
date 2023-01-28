@@ -18,6 +18,9 @@ import TemplatePreProcessor from "./src/plugins/pre_processors/TemplatePreProces
 import WeaveProcessor from "./src/plugins/content_processors/WeaveProcessor.js";
 import HtmlTocContentProcessor from "./src/plugins/content_processors/HtmlTocContentProcessor.js";
 import HtmlTocPostProcessor from "./src/plugins/post_processors/HtmlTocPostProcessor.js";
+import FileContentProcessor from "./src/plugins/content_processors/FileContentProcessor.js";
+import FilePostProcessor from "./src/plugins/post_processors/FilePostProcessor.js";
+import FragmentContentProcessor from "./src/plugins/content_processors/FragmentContentProcessor.js";
 
 export * from './src/Parser.js';
 export * from './src/Token.js';
@@ -31,7 +34,8 @@ export {
     DocumentProcessor, ContentProcessor, PreProcessor, PostProcessor,
     DocumentArgumentsProcessor, HtmlDocumentProcessor, JSProcessor, LiteralProcessor,
     TemplatePreProcessor, WeaveProcessor,
-    HtmlTocContentProcessor, HtmlTocPostProcessor
+    HtmlTocContentProcessor, HtmlTocPostProcessor,
+    FileContentProcessor, FilePostProcessor, FragmentContentProcessor
 };
 
 class CommandArgumentError extends Error {
