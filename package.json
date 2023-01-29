@@ -4,13 +4,13 @@
   "description": "",
   "main": "emdd.js",
   "type": "module",
-  "homepage": "https://www.morganwalsh.dev/emdd_documentation_site/",
+  "homepage": "https://emdd.morganwalsh.dev",
   "scripts": {
     "start": "node ./emdd.js",
     "deploy": "npm test&& npm publish",
     "start:site": "npm run build:site&& ws --directory ./documentation/build --rewrite \"/emdd -> /\" --rewrite \"/emdd/(.*) -> /$1\"",
     "build:site": "npm start -- site --config=./documentation/site_config.json",
-    "deploy:site": "npm run build:site&& gh-pages -d documentation/build",
+    "deploy:site": "npm run build:site&& cp CNAME ./documentation/build/CNAME&& gh-pages -d documentation/build",
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest --coverage",
     "test:watch": "npm run test -- --watchAll --verbose",
     "mess": "node ./examples/mess.js"
