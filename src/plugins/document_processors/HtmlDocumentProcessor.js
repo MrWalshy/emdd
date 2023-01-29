@@ -34,7 +34,7 @@ export default class HtmlDocumentProcessor extends DocumentProcessor {
 
     _contentFromBlocks(blocks) {
         let output = "";
-        blocks.forEach(block => output += block.value);
+        blocks.forEach(block => output += block.outputValue);
         return output;
     }
 

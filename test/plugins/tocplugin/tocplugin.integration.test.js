@@ -1,4 +1,4 @@
-import { deepLog, HtmlTocContentProcessor, HtmlTocPostProcessor, Parser, Tokeniser, Transpiler } from "../../../emdd.js";
+import { deepLog, HtmlTocPostProcessor, Parser, Tokeniser, Transpiler } from "../../../emdd.js";
 
 describe("INTEGRATION TEST: Inserting a Table of Contents", () => {
     let transpiler;
@@ -11,7 +11,7 @@ describe("INTEGRATION TEST: Inserting a Table of Contents", () => {
     }
 
     beforeEach(() => {
-        transpiler = new Transpiler([new HtmlTocContentProcessor()], [], [new HtmlTocPostProcessor()]);
+        transpiler = new Transpiler([], [new HtmlTocPostProcessor()]);
     });
 
     it("Should insert a table of contents into the result", () => {
@@ -80,33 +80,4 @@ describe("INTEGRATION TEST: Inserting a Table of Contents", () => {
         // Assert
         expect(actual).toEqual(expected);
     });
-});
-
-describe("INTEGRATION TEST: Erroeneous TOC conditions", () => {
-    let transpiler;
-
-    function transpile(src) {
-        const tokeniser = new Tokeniser(src, ["toc"]);
-        const parser = new Parser(tokeniser.tokenise());
-        const blocks = parser.parse();
-        return transpiler.transpile(blocks);
-    }
-
-    beforeEach(() => {
-        transpiler = new Transpiler([], [], [new HtmlTocPostProcessor()]);
-    });
-
-    it("Should throw an error indicating a missing content processor", () => {
-        // Arrange
-        const md = `# My title
-
-@toc();
-
-## My secondary title
-`;
-        
-        // Act Assert
-        expect(() => transpile(md)).toThrowError("Error (5): Content processor not found for toc");
-    });
-
 });

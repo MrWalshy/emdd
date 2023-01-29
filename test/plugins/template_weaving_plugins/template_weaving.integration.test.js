@@ -1,4 +1,4 @@
-import { JSProcessor, Parser, TemplatePreProcessor, Tokeniser, Transpiler, WeaveProcessor } from "../../../emdd.js";
+import { JSProcessor, Parser, Tokeniser, Transpiler, WeaveProcessor } from "../../../emdd.js";
 
 describe("INTEGRATION TEST: Template weaving, literal type", () => {
     let transpiler;
@@ -11,9 +11,7 @@ describe("INTEGRATION TEST: Template weaving, literal type", () => {
     }
 
     beforeEach(() => {
-        const weaver = new WeaveProcessor();
-        const templater = new TemplatePreProcessor(weaver);
-        transpiler = new Transpiler([new JSProcessor(), weaver], [templater]);
+        transpiler = new Transpiler([new JSProcessor(), new WeaveProcessor()]);
     });
 
     it("Should insert a block @template on command with block @weave", () => {
@@ -67,8 +65,7 @@ describe("INTEGRATION TEST: Template weaving from data source", () => {
     beforeEach(() => {
         const context = {};
         const weaver = new WeaveProcessor(context);
-        const templater = new TemplatePreProcessor(weaver);
-        transpiler = new Transpiler([new JSProcessor(context), weaver], [templater]);
+        transpiler = new Transpiler([new JSProcessor(context), weaver]);
     });
 
     it("Should insert a block weaved from a JS data source", () => {

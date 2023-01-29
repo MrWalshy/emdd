@@ -1,3 +1,4 @@
+import { Block } from "../../Parser.js";
 import Token, { TokenType } from "../../Token.js";
 import Tokeniser from "../../Tokeniser.js";
 import { deepLog } from "../../utils/logging.js";
@@ -7,18 +8,19 @@ export default class HtmlTocPostProcessor extends PostProcessor {
     
     transform(blocks) {
         try {
-            let tocBlockIndex = blocks.findIndex(block => block.srcBlock.identifier === "toc");
+            let tocBlockIndex = blocks.findIndex(block => block.identifier === "toc");
             if (tocBlockIndex === -1) return blocks;
             let headings = this.identifyHeadings(blocks);
 
             while (tocBlockIndex != -1) {
+                let block = blocks[tocBlockIndex];
                 let headingsToAdd = headings;
-                const param = blocks[tocBlockIndex].srcBlock.parameters.find(p => p.name === "exclude");
+                const param = block.parameters.find(p => p.name === "exclude");
                 if (param) param.value.split(" ").forEach(value => {
                     headingsToAdd = headingsToAdd.filter(h => h.identifier.lexeme !== value);
                 });
-                blocks[tocBlockIndex].value = this.toHtml(headingsToAdd);
-                tocBlockIndex = blocks.findIndex(block => block.srcBlock.identifier  === "toc" && block.value === "");
+                blocks[tocBlockIndex] = new Block(block.type, block.identifier, block.parameters, block.value, this.toHtml(headingsToAdd));
+                tocBlockIndex = blocks.findIndex(block => block.identifier  === "toc" && block.outputValue === "");
             }
             return blocks;
         } catch (error) {
@@ -39,7 +41,7 @@ export default class HtmlTocPostProcessor extends PostProcessor {
     identifyHeadings(blocks) {
         let output = [];
         blocks.forEach(block => {
-            const tokens = new HeadingTokeniser(block.value, ["h1", "h2", "h3", "h4", "h5", "h6"]).tokenise();
+            const tokens = new HeadingTokeniser(block.outputValue, ["h1", "h2", "h3", "h4", "h5", "h6"]).tokenise();
             // console.log("BLOCK: " + block.value);
             // deepLog(tokens);
             const parser = new HeadingParser(tokens);
