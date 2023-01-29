@@ -7,14 +7,12 @@ import { Block, BlockType, UnifiedMarkdownParser } from "./Parser.js";
  */
 export default class Transpiler {
     _contentProcessors;
-    _preProcessors;
-    _postProcessors;
     _documentArgs;
     _markdownParser;
+    _postProcessors;
 
-    constructor(contentProcessors = [], preProcessors = [], postProcessors = [], markdownParser = new UnifiedMarkdownParser()) {
+    constructor(contentProcessors = [], postProcessors = [], markdownParser = new UnifiedMarkdownParser()) {
         this._contentProcessors = contentProcessors;
-        this._preProcessors = preProcessors;
         this._postProcessors = postProcessors;
         this._markdownParser = markdownParser;
         this._documentArgs = {};
@@ -28,17 +26,36 @@ export default class Transpiler {
      * @returns {*}
      */
     transpile(blocks = [], documentProcessor) {
-        const processedBlocks = this.preProcess(blocks);
-        let transpiledBlocks = [];
-        processedBlocks.forEach(block => {
-            const transpilationOutput = this.transpileBlock(block)
-            transpiledBlocks.push(new TranspiledBlock(block, transpilationOutput));
+        let filteredBlocks = blocks.filter(block => block.identifier !== "docArgs");
+
+        // built-in processing
+        let docArgs = blocks.filter(block => block.identifier === "docArgs");
+        docArgs.forEach(block => Object.assign(this._documentArgs, JSON.parse("{" + block.value.value + "}")));
+
+        // content (plugin) processing
+        let processedBlocks = filteredBlocks;
+        this._contentProcessors.forEach(processor => {
+            processedBlocks = processor.transform(processedBlocks);
         });
-        const postProcessedBlocks = this.postProcess(transpiledBlocks);
-        // deepLog(postProcessedBlocks);
+
+        // built-in markdown processing last, inline plugins included
+        // - inline-plugins lower priority than block plugins, runs later
+        let fullyProcessedBlocks = [];
+        processedBlocks.forEach(block => {
+            if (block.type === BlockType.MARKDOWN) {
+                fullyProcessedBlocks.push(
+                    new Block(block.type, block.identifier, block.parameters, block.value, this.transpileBlock(block))
+                );
+            } else fullyProcessedBlocks.push(block);
+        });
+
+        // post processing
+        let postProcessedBlocks = fullyProcessedBlocks;
+        this._postProcessors.forEach(processor => postProcessedBlocks = processor.transform(postProcessedBlocks));
+
         if (documentProcessor) return documentProcessor.transform(postProcessedBlocks, this._documentArgs);
         let output = "";
-        postProcessedBlocks.forEach(block => output += block.value);
+        postProcessedBlocks.forEach(block => output += block.outputValue);
         return output;
     }
 
@@ -50,7 +67,7 @@ export default class Transpiler {
      */
     transpileBlock(block) {
         if (block.type === BlockType.MARKDOWN) return this.transpileMarkdown(block).trim();
-        else if (block.type === BlockType.PLUGIN || block.type === BlockType.INLINE_PLUGIN) return this.transpilePlugin(block);
+        else if (block.type === BlockType.INLINE_PLUGIN) return this.transpilePlugin(block);
         else if (block.type === BlockType.VALUE) return block.value;
         else throw new TranspilerError("Error (4): Unrecognised block transpilation target.");
     }
@@ -78,45 +95,9 @@ export default class Transpiler {
         if (!plugin) {
             throw new TranspilerError(`Error (5): Content processor not found for ${block._identifier}`);
         }
-        if (plugin.name === "docArgs") {
-            this._documentArgs = plugin.transform(block);
-            return "";
-        }
-        else return plugin.transform(block);
+        return plugin.transform([block])[0].outputValue;
     }
 
-    /**
-     * Applies any found pre-processors to the given blocks, returning a sequence of pre-processed blocks.
-     * 
-     * @param {Block[]} blocks 
-     * @returns {Block[]}
-     */
-    preProcess(blocks) {
-        const output = [];
-        if (this._preProcessors.length === 0) return blocks;
-        blocks.forEach(block => {
-            const preProcessor = this._preProcessors.find(processor => processor.name === block.identifier);
-            if (!preProcessor) output.push(block);
-            else {
-                const preProcessedBlock = preProcessor.transform(block);
-                if (preProcessedBlock) output.push(block);
-            }
-        });
-        // deepLog(output)
-        return output;
-    }
-
-    /**
-     * Applies any post-processors to the given array of blocks, returning the post-processed blocks.
-     * 
-     * @param {Block[]} blocks 
-     * @returns {Block[]}
-     */
-    postProcess(blocks) {
-        let output = blocks;
-        this._postProcessors.forEach(processor => output = processor.transform(blocks));
-        return output;
-    }
 }
 
 /**
