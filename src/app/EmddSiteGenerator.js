@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync, existsSync, cpSync, mkdirSync } from 'fs';
 import path from 'path';
-import { HtmlDocumentProcessor, JSProcessor, WeaveProcessor } from '../../emdd.js';
+import { deepLog, HtmlDocumentProcessor, JSProcessor, WeaveProcessor } from '../../emdd.js';
 import Parser from '../Parser.js';
 import Tokeniser from '../Tokeniser.js';
 import Transpiler from '../Transpiler.js';
@@ -8,20 +8,17 @@ import { createDirectory, getPathsOfType } from "../utils/file.js";
 
 export default class EmddSiteGenerator {
     _weaver;
-    _templateProcessor;
     _preamble;
     _postamble;
 
     constructor() {
         this._weaver = new WeaveProcessor();
-        this._templateProcessor = new TemplatePreProcessor(this._weaver);
         this._preamble = "";
         this._postamble = "";
     }
 
     generateFromConfig(config) {
         // drop and create output directory
-        // createDirectory(config.)
         // deepLog(config)
         console.log("@ DOING: Creating build directory")
         createDirectory(config.outputDirectory, true, true);
@@ -70,7 +67,7 @@ export default class EmddSiteGenerator {
             const parser = new Parser(tokeniser.tokenise());
             const blocks = parser.parse();
             console.log("@ INFO: Loading templates into template weaver");
-            blocks.forEach(block => this._weaver.addTemplate(block));
+            this._weaver.loadTemplates(blocks);
             // deepLog(this._weaver._templates);
         });
        
@@ -123,12 +120,12 @@ export default class EmddSiteGenerator {
     }
 
     transpile(src, config) {
-        const tokeniser = new Tokeniser(src, [...config.contentPluginTypes, ...config.preProcessorTypes]);
+        const tokeniser = new Tokeniser(src, [...config.contentPluginTypes, ...config.postProcessorTypes, "docArgs"]);
         const tokens = tokeniser.tokenise();
         const parser = new Parser(tokens);
         const blocks = parser.parse();
         // deepLog(blocks);
-        const transpiler = new Transpiler(this.getContentPlugins(config.contentPluginTypes), this.getPreProcessors(config.preProcessorTypes));
+        const transpiler = new Transpiler(this.getContentPlugins(config.contentPluginTypes), []);
         return transpiler.transpile(blocks, this.getDocumentPlugin(config.outputType));
     }
 
@@ -169,23 +166,7 @@ export default class EmddSiteGenerator {
         console.log("Acquiring content plugins: " + types);
         const plugins = [];
         types.forEach(type => plugins.push(this.getContentPlugin(type)));
-        return plugins;
-    }
-
-    getPreProcessors(types) {
-        console.log("Acquiring pre-processors: " + types);
-        const preProcessors = [];
-        types.forEach(type => preProcessors.push(this.getPreProcessor(type)));
-        return preProcessors;
-    }
-
-    getPreProcessor(type) {
-        switch (type) {
-            case "template":
-                return this._templateProcessor;
-            default:
-                throw new SiteConfigurationError("(302): Invalid content plugin type '" + type + "' supplied");
-        }
+        return plugins.filter(plugin => plugin !== null);
     }
 
     getContentPlugin(type) {
@@ -193,14 +174,10 @@ export default class EmddSiteGenerator {
         switch (type) {
             case "js":
                 return new JSProcessor();
-            case "lit":
-                return new LiteralProcessor();
-            case "docArgs":
-                return new DocumentArgumentsProcessor();
             case "weave":
                 return this._weaver;
             default:
-                throw new SiteConfigurationError("(302): Invalid content plugin type '" + type + "' supplied");
+                return null;
         }
     }
 }
@@ -210,16 +187,16 @@ export class EmddSiteConfiguration {
     _src;
     _contentPlugins;
     _config;
-    _preProcessors;
+    _postProcessors;
 
-    constructor(output = {}, src = {}, contentPlugins = [], configLocation, preProcessors = []) {
+    constructor(configLocation, output = {}, src = {}, contentPlugins = [], postProcessors = []) {
         this._output = output;
         this._src = src;
         this._contentPlugins = contentPlugins;
         this._config = {
             location: configLocation
         }
-        this._preProcessors = preProcessors;
+        this._postProcessors = postProcessors;
     }
 
     get outputType() { return this._output.type; }
@@ -231,7 +208,7 @@ export class EmddSiteConfiguration {
     get templateDirectories() { return this._src.templates; }
     get preambleLocation() { return this._src.preamble; }
     get postambleLocation() { return this._src.postamble; }
-    get preProcessorTypes() { return this._preProcessors; }
+    get postProcessorTypes() { return this._postProcessors; }
 }
 
 export class SiteConfigurationError extends Error {
@@ -245,7 +222,7 @@ export function loadSiteConfiguration(configPath) {
     try {
         const configData = readFileSync(configPath, "utf-8");
         const config = JSON.parse(configData);
-        return new EmddSiteConfiguration(config.output, config.src, config.contentPlugins, fullPath, config.preProcessors);
+        return new EmddSiteConfiguration(fullPath, config.output, config.src, config.contentPlugins, config.postProcessors);
     } catch (error) {
         throw new SiteConfigurationError("(300): Failed to load configuration from '" + fullPath + "'");
     }
