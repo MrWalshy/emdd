@@ -31,7 +31,7 @@
 <p>If you like this project, feel free to use it as you please.</p>
 <p>If you would like to contribute to Extensible Markdown, please visit the GitHub repository for this page and submit a pull request with your contribution (contribution guidelines do not currently exist).</p>
 <h2>Example document</h2>
-<p>The following is an example of an emdd document:</p><pre><code>@docArgs()
+<p>The following is an example of an emdd document making use of the built-in <code>docArgs</code> processor, and the <code>weave</code> and <code>js</code> plugins:</p><pre><code>@docArgs()
 ```
 "title": "Example page"
 ```
@@ -45,9 +45,9 @@ Some paragraph text. Some paragraph text. Some paragraph text.
 @js()
 ```
 let sum = 3 + 3;
-return `<p>Sum of 3 + 3 is ${sum}</p>`;
+return `&lt;p>Sum of 3 + 3 is ${sum}&lt;/p>`;
 ```
-</pre></code><p>After transpilation to HTML, the contents of the document would roughly look as follows:</p>
+</code></pre><p>After transpilation to HTML, the contents of the document would roughly look as follows:</p>
 <pre><code class="language-html">&#x3C;html>
     &#x3C;head>
         &#x3C;title>Example page&#x3C;/title>
@@ -65,6 +65,10 @@ return `<p>Sum of 3 + 3 is ${sum}</p>`;
     &#x3C;/body>
 &#x3C;/html>
 </code></pre>
+<p>There is also support for inline-plugins, this means the previous JS block could be changed to something like:</p><pre><code>This is some text using an inline-plugin, 3 + 3 is @js(value="return 3 + 3");</code></pre><p>To produce the following:</p>
+<pre><code class="language-html">&#x3C;p>This is some text using an inline-plugin, 3 + 3 is 6&#x3C;/p>
+</code></pre>
+<p>The JavaScript in a <code>js</code> block is not run on the client at runtime, but instead at build-time and is weaved into the content of the site; this is primarily aimed towards static generation of content.</p>
     <footer class="bg-primary fg-light p-16">
     <small>Extensible Markdown (.emdd) - &copy; 2023</small>
     <br />

@@ -22,28 +22,36 @@
     <header class="bg-primary fg-light p-16">
     <h1>API Documentation</h1>
     <p>A peek inside...</p>
-</header><h2><code>Tokeniser</code></h2>
+</header><article class="pb-16 pt-16">
+<h2><code>Tokeniser</code></h2>
 <p>Used to produce a flat array of tokens to be parsed into blocks.</p>
+<hr>
 <h3><code>constructor(src, pluginIdentifiers = [])</code></h3>
 <p>Accepts a source string of text and identifiers to use in the tokenisation process.</p>
+<hr>
 <h3><code>addToken(token)</code></h3>
 <p>Adds a new token to the internal token buffer, setting its line number and position in that line. Increments the line position after setting the line position of the token.</p>
 <p><strong>Parameters</strong></p>
 <ul>
   <li><code>Token token</code>: A new token to add to the tokenised tokens</li>
 </ul>
+<hr>
 <h3><code>tokenise()</code></h3>
 <p><strong>Return type</strong>: <code>Token[]</code></p>
 <p>Triggers the tokenisation process, returning the flat array of tokens.</p>
+<hr>
 <h3><code>scanToken()</code></h3>
 <p><strong>Return type</strong>: <code>string</code></p>
 <p>Scans the next token, adding it to the internal token buffer.</p>
+<hr>
 <h3><code>next()</code></h3>
 <p><strong>Return type</strong>; <code>string</code></p>
 <p>Returns the next character in the internal src string buffer.</p>
+<hr>
 <h3><code>isAtEnd()</code></h3>
 <p><strong>Return type</strong>: <code>boolean</code></p>
 <p>Checks if the tokeniser has reached the end of the source stream.</p>
+<hr>
 <h3><code>isAlpha(character)</code></h3>
 <p><strong>Return type</strong>: <code>boolean</code></p>
 <p>Checks if the given character is an alphabetical letter.</p>
@@ -51,41 +59,64 @@
 <ul>
   <li><code>string character</code>: A character to check</li>
 </ul>
+<hr>
 <h3><code>peek()</code></h3>
 <p><strong>Return type</strong>: <code>string | null</code></p>
 <p>Returns the next character to be scanned in the buffer, without advancing the pointer past the character.</p>
 <p>Returns <code>null</code> if the end of the source string has been reached.</p>
+<hr>
 <h3><code>pluginIdentifier(current)</code></h3>
 <p>Adds a plugin identifier to the token buffer, or a flat stream of character tokens if no identifier matches the given keywords.</p>
 <p><strong>Parameters</strong></p>
 <ul>
   <li><code>string current</code>: The current character</li>
-</ul>
+</ul></article>
+<article class="pb-16 pt-16">
 <h2><code>Token</code></h2>
+<p>Represents a lexeme, produced as output from the tokeniser.</p>
+<hr></article>
+<article class="pb-16 pt-16">
 <h2><code>TokenType</code></h2>
+<p>Represents the type of the <code>Token</code>.</p>
+<hr></article>
+<article class="pb-16 pt-16">
 <h2><code>Parser</code></h2>
+<p>Parses a sequence of tokens into <code>Block</code>'s which can be manipulated via content, post and document processors during transpilation.</p>
+<hr></article>
+<article class="pb-16 pt-16">
 <h2><code>Block</code></h2>
+<p>Represents a valid grouping of tokens.</p>
+<hr></article>
+<article class="pb-16 pt-16">
 <h2><code>BlockType</code></h2>
+<p>Represents the type of <code>Block</code> produced by the <code>Parser</code>.</p>
+<hr></article>
+<article class="pb-16 pt-16">
 <h2><code>Parameter</code></h2>
+<p>Represents a name and value parameter pairing for a <code>Block</code>.</p>
+<hr></article>
+<article class="pb-16 pt-16">
 <h2><code>Parameters</code></h2>
-<h2><code>Transpiler</code></h2>
-<h2><code>DocumentProcessor</code></h2>
-<h2><code>ContentProcessor</code></h2>
-<h2><code>PreProcessor</code></h2>
-<h2><code>PostProcessor</code></h2>
+<p>Represents a grouping of <code>Parameter</code>.</p>
+<hr></article>
+<article class="pb-16 pt-16">
+<h2><code>Transpiler</code></h2></article>
+<article class="pb-16 pt-16">
+<h2><code>DocumentProcessor</code></h2></article>
+<article class="pb-16 pt-16">
+<h2><code>ContentProcessor</code></h2></article>
+<article class="pb-16 pt-16">
+<h2><code>PostProcessor</code></h2></article>
+<article class="pb-16 pt-16">
 <h2>Built-in processors</h2>
 <h3>Document processors</h3>
 <h4><code>HtmlDocumentProcessor</code></h4>
 <h3>Content processors</h3>
 <h4><code>DocumentArgumentsProcessor</code></h4>
 <h4><code>JSProcessor</code></h4>
-<h4><code>LiteralProcessor</code></h4>
-<h4><code>HtmlTocContentProcessor</code></h4>
 <h4><code>WeaveProcessor</code></h4>
-<h3>Pre-processors</h3>
-<h4><code>TemplatePreProcessor</code></h4>
 <h3>Post-processors</h3>
-<h4><code>HTMLTocPostProcessor</code></h4>
+<h4><code>HTMLTocPostProcessor</code></h4></article>
     <footer class="bg-primary fg-light p-16">
     <small>Extensible Markdown (.emdd) - &copy; 2023</small>
     <br />
