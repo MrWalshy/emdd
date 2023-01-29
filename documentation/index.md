@@ -24,14 +24,12 @@ If you would like to contribute to Extensible Markdown, please visit the GitHub 
 
 ## Example document
 
-The following is an example of an emdd document:
+The following is an example of an emdd document making use of the built-in `docArgs` processor, and the `weave` and `js` plugins:
 
-@lit()
+@weave(name="code" value="@docArgs()
 ```
-<pre><code>@docArgs()
-\```
-"title": "Example page"
-\```
+\"title\": \"Example page\"
+```
 
 # Title
 
@@ -40,12 +38,11 @@ Some paragraph text. Some paragraph text. Some paragraph text. Some paragraph te
 Some paragraph text. Some paragraph text. Some paragraph text.
 
 @js()
-\```
-let sum = 3 + 3;
-return `<p>Sum of 3 + 3 is ${sum}</p>`;
-\```
-</pre></code>
 ```
+let sum = 3 + 3;
+return `&lt;p>Sum of 3 + 3 is ${sum}&lt;/p>`;
+```
+");
 
 After transpilation to HTML, the contents of the document would roughly look as follows:
 
@@ -67,3 +64,15 @@ After transpilation to HTML, the contents of the document would roughly look as 
     </body>
 </html>
 ```
+
+There is also support for inline-plugins, this means the previous JS block could be changed to something like:
+
+@weave(name="code" value="This is some text using an inline-plugin, 3 + 3 is @js(value=\"return 3 + 3\");");
+
+To produce the following:
+
+```html
+<p>This is some text using an inline-plugin, 3 + 3 is 6</p>
+```
+
+The JavaScript in a `js` block is not run on the client at runtime, but instead at build-time and is weaved into the content of the site; this is primarily aimed towards static generation of content.

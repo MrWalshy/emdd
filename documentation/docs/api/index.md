@@ -10,6 +10,8 @@
 "lead": "A peek inside..."
 ```
 
+<article class="pb-16 pt-16">
+
 ## `Tokeniser`
 
 Used to produce a flat array of tokens to be parsed into blocks.
@@ -94,31 +96,103 @@ Adds a plugin identifier to the token buffer, or a flat stream of character toke
 
 - `string current`: The current character
 
----
+</article>
+
+<article class="pb-16 pt-16">
 
 ## `Token`
 
+Represents a lexeme, produced as output from the tokeniser.
+
+---
+
+</article>
+
+<article class="pb-16 pt-16">
+
 ## `TokenType`
+
+Represents the type of the `Token`.
+
+---
+
+</article>
+
+<article class="pb-16 pt-16">
 
 ## `Parser`
 
+Parses a sequence of tokens into `Block`'s which can be manipulated via content, post and document processors during transpilation.
+
+---
+
+</article>
+
+<article class="pb-16 pt-16">
+
 ## `Block`
+
+Represents a valid grouping of tokens.
+
+---
+
+</article>
+
+<article class="pb-16 pt-16">
 
 ## `BlockType`
 
+Represents the type of `Block` produced by the `Parser`.
+
+---
+
+</article>
+
+<article class="pb-16 pt-16">
+
 ## `Parameter`
+
+Represents a name and value parameter pairing for a `Block`.
+
+---
+
+</article>
+
+<article class="pb-16 pt-16">
 
 ## `Parameters`
 
+Represents a grouping of `Parameter`.
+
+---
+
+</article>
+
+<article class="pb-16 pt-16">
+
 ## `Transpiler`
+
+</article>
+
+<article class="pb-16 pt-16">
 
 ## `DocumentProcessor`
 
+</article>
+
+<article class="pb-16 pt-16">
+
 ## `ContentProcessor`
 
-## `PreProcessor`
+</article>
+
+<article class="pb-16 pt-16">
 
 ## `PostProcessor`
+
+</article>
+
+<article class="pb-16 pt-16">
 
 ## Built-in processors
 
@@ -132,16 +206,10 @@ Adds a plugin identifier to the token buffer, or a flat stream of character toke
 
 #### `JSProcessor`
 
-#### `LiteralProcessor`
-
-#### `HtmlTocContentProcessor`
-
 #### `WeaveProcessor`
-
-### Pre-processors
-
-#### `TemplatePreProcessor`
 
 ### Post-processors
 
 #### `HTMLTocPostProcessor`
+
+</article>
