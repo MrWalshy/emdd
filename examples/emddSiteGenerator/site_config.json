@@ -4,12 +4,12 @@
         "directory": "./build"
     },
     "src": {
-        "entrypoint": "./index.emdd",
+        "entrypoint": "./index.md",
         "copyFilesOfType": ["html", "css", "js"],
         "templates": ["./templates"],
         "preamble": "./preamble.html",
         "postamble": "./postamble.html"
     },
     "contentPlugins": ["js", "weave", "template"],
-    "preProcessors": ["template"]
+    "postProcessors": []
 }

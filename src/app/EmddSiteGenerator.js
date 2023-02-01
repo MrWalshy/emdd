@@ -23,10 +23,6 @@ export default class EmddSiteGenerator {
         console.log("@ DOING: Creating build directory")
         createDirectory(config.outputDirectory, true, true);
         console.log("@ DONE: Creating build directory");
-        // recursively copy all supported file types
-        console.log("@ DOING: Copying files of supported types to build directory");
-        this.copySupportedFileTypes(config);
-        console.log("@ DONE: Copying files of supported types to build directory");
         // preload templates
         if (config.templateDirectories) {
             console.log("@ DOING: Loading templates");
@@ -46,6 +42,10 @@ export default class EmddSiteGenerator {
         console.log("@ DOING: Transpiling .emdd to .html and copying to build directory");
         this.transpileAndCopyEmddToHtmlFiles(config);
         console.log("@ DONE: Transpiling .emdd to .html and copying to build directory");
+        // recursively copy all supported file types
+        console.log("@ DOING: Copying files of supported types to build directory");
+        this.copySupportedFileTypes(config);
+        console.log("@ DONE: Copying files of supported types to build directory");
     }
 
     loadTemplates(config) {
@@ -134,6 +134,8 @@ export default class EmddSiteGenerator {
         config.supportedFileTypes.forEach(type => {
             filesToCopy.push(...getPathsOfType(type, path.dirname(config.configLocation)));
         });
+        const buildDir = config.outputDirectory;
+        filesToCopy = filesToCopy.filter(file => !file.includes(buildDir));
         
         // remove postamble and preamble files
         if (config.preambleLocation || config.postambleLocation) {
