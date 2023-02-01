@@ -10,11 +10,13 @@ export default class EmddSiteGenerator {
     _weaver;
     _preamble;
     _postamble;
+    _contentProcessors;
 
-    constructor() {
+    constructor(contentProcessors = []) {
         this._weaver = new WeaveProcessor();
         this._preamble = "";
         this._postamble = "";
+        this._contentProcessors = contentProcessors;
     }
 
     generateFromConfig(config) {
@@ -120,12 +122,12 @@ export default class EmddSiteGenerator {
     }
 
     transpile(src, config) {
-        const tokeniser = new Tokeniser(src, [...config.contentPluginTypes, ...config.postProcessorTypes, "docArgs"]);
+        const tokeniser = new Tokeniser(src, [...config.contentPluginTypes, ...config.postProcessorTypes, "docArgs", ...this._contentProcessors.map(proc => proc.name)]);
         const tokens = tokeniser.tokenise();
         const parser = new Parser(tokens);
         const blocks = parser.parse();
         // deepLog(blocks);
-        const transpiler = new Transpiler(this.getContentPlugins(config.contentPluginTypes), []);
+        const transpiler = new Transpiler([...this.getContentPlugins(config.contentPluginTypes), ...this._contentProcessors], []);
         return transpiler.transpile(blocks, this.getDocumentPlugin(config.outputType));
     }
 
